@@ -19,7 +19,17 @@ import { useState } from "react";
 import { DeleteUserDialog } from "./delete-user-dialog";
 import { useDeleteUser, useUpdateUser } from "../hooks/useUserMutations";
 
-export const useUserColumns = (): ColumnDef<TransformedUser>[] => {
+type UserColumnOptions = {
+  canUpdate: boolean;
+  canDelete: boolean;
+  canResend: boolean;
+};
+
+export const useUserColumns = ({
+  canUpdate,
+  canDelete,
+  canResend,
+}: UserColumnOptions): ColumnDef<TransformedUser>[] => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<TransformedUser | null>(null);
   const [resendingUserId, setResendingUserId] = useState<string | null>(null);
@@ -108,7 +118,7 @@ export const useUserColumns = (): ColumnDef<TransformedUser>[] => {
             <Badge className={statusColors[status] || "bg-muted text-muted-foreground"}>
               {status.charAt(0).toUpperCase() + status.slice(1)}
             </Badge>
-            {status === "invited" && (
+            {status === "invited" && canResend && (
               <Button
                 variant="outline"
                 size="sm"
@@ -199,34 +209,42 @@ export const useUserColumns = (): ColumnDef<TransformedUser>[] => {
                     View Details
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={`/dashboard/users/${user.id}/edit`}
-                    className="cursor-pointer"
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit User
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-red-600 cursor-pointer"
-                  onClick={() => handleDeleteClick(user)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete User
-                </DropdownMenuItem>
+                {canUpdate && (
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href={`/dashboard/users/${user.id}/edit`}
+                      className="cursor-pointer"
+                    >
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit User
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                {canDelete && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-red-600 cursor-pointer"
+                      onClick={() => handleDeleteClick(user)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete User
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <DeleteUserDialog
-              open={deleteDialogOpen}
-              onOpenChange={setDeleteDialogOpen}
-              user={userToDelete}
-              onSuccess={() => {
-                setUserToDelete(null);
-              }}
-            />
+            {canDelete && (
+              <DeleteUserDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                user={userToDelete}
+                onSuccess={() => {
+                  setUserToDelete(null);
+                }}
+              />
+            )}
           </>
         );
       },
