@@ -36,6 +36,7 @@ import type {
   PermissionKey,
   UserStatus,
 } from "@/lib/permissions";
+import { sendUserInviteEmail } from "@/lib/email";
 
 export async function GET(request: NextRequest) {
   try {
@@ -146,11 +147,13 @@ export async function POST(request: NextRequest) {
       throw new BadRequestError("Failed to create user");
     }
 
-    if (shouldSendInvite && inviteMeta.invitationToken) {
-      console.info(
-        `[users] Invitation generated for ${payload.email}: token=${inviteMeta.invitationToken}`
-      );
-    }
+    await maybeSendInviteEmail({
+      token: inviteMeta.invitationToken,
+      email: payload.email,
+      name: payload.name,
+      inviterName: actor.name ?? actor.email ?? "RAMS Admin",
+      shouldSend: shouldSendInvite,
+    });
 
     const responseBody = userResponseSchema.parse(serializeUser(createdUser));
 
@@ -234,6 +237,38 @@ const SORT_COLUMNS: Record<string, any> = {
   role: schema.user.role,
   status: schema.user.status,
 };
+
+async function maybeSendInviteEmail({
+  token,
+  email,
+  name,
+  inviterName,
+  shouldSend,
+}: {
+  token?: string | null;
+  email: string;
+  name?: string | null;
+  inviterName: string;
+  shouldSend: boolean;
+}) {
+  if (!shouldSend || !token) {
+    return;
+  }
+
+  try {
+    await sendUserInviteEmail({
+      to: email,
+      token,
+      name,
+      inviter: inviterName,
+    });
+  } catch (error) {
+    console.error(
+      `[users] Failed to dispatch invite email for ${email}`,
+      error
+    );
+  }
+}
 
 function parseNumber(value: string | null) {
   if (value === null) return undefined;

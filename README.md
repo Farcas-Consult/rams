@@ -77,8 +77,9 @@
 - **Invitation workflow**
   1. Go to **Dashboard → Users → Add User**.
   2. Provide email, optional display name, choose role & fine-grained permissions.
-  3. Leave “Send invitation email” enabled to email the invite token. You can resend or cancel invites from the edit form (`status = invited`).
-  4. Once the user signs in and sets a password, update their status to `active` if needed.
+  3. Leave “Send invitation email” enabled to email the invite token. Invites land on `/auth/accept-invite`, where users set their password before first login.
+  4. You can resend or cancel invites from the edit form or directly inside the users table whenever `status = invited`.
+  5. Once the user accepts the invite, their status flips to `active` automatically.
 
 All new API endpoints (`/api/users`, `/api/users/[id]`, `/api/users/stats`, `/api/users/permissions`) enforce Better Auth sessions plus the relevant `users:*` permission.
 
@@ -101,6 +102,8 @@ The seeder will create/update the user defined in `scripts/seed-superadmin.ts`, 
 - Invite a user via `/dashboard/users/new`, confirm a row with `status=invited` appears and `/api/users` responds with the new entry.
 - Edit a user to change role and fine-grained permissions; ensure the UI reflects the updated badges in the table.
 - Resend an invitation from the edit form and observe the console log of the refreshed token (until email delivery is wired up).
+- Use the “Resend” chip in the users table to verify pending invites can be re-sent without opening the detail page.
+- Follow an invitation link, ensure `/auth/accept-invite` loads the recipient info, set a password, and confirm the user is activated afterwards.
 - Delete a user from the table actions and confirm the entry disappears (Better Auth cascades accounts/sessions).
 - Review the KPI cards—counts for invited/active/admin seats should update after the above actions.
 

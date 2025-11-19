@@ -10,6 +10,7 @@ import {
   IconRss,
   IconArchive,
 } from "@tabler/icons-react";
+import type { Icon } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -23,51 +24,71 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import type { User } from "@/db/schema";
+import type { PermissionKey } from "@/lib/permissions";
 
-const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: IconDashboard,
-    },
-    {
-      title: "Live Feeds for Assets",
-      url: "/dashboard/live-feeds",
-      icon: IconRss,
-    },
-    {
-      title: "Decommissioning",
-      url: "/dashboard/decommissioning",
-      icon: IconArchive,
-    },
-    {
-      title: "Reports",
-      url: "/dashboard/reports",
-      icon: IconReport,
-    },
-    {
-      title: "Users",
-      url: "/dashboard/users",
-      icon: IconUsers,
-    },
-    {
-      title: "Assets",
-      url: "/dashboard/assets",
-      icon: IconPackage,
-    },
-  ],
+type NavItem = {
+  title: string;
+  url: string;
+  icon: Icon;
+  requiredPermission?: PermissionKey;
 };
+
+const navItems: NavItem[] = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: IconDashboard,
+    requiredPermission: "dashboard:view",
+  },
+  {
+    title: "Live Feeds for Assets",
+    url: "/dashboard/live-feeds",
+    icon: IconRss,
+    requiredPermission: "live-feed:read",
+  },
+  {
+    title: "Decommissioning",
+    url: "/dashboard/decommissioning",
+    icon: IconArchive,
+    requiredPermission: "decommissioning:read",
+  },
+  {
+    title: "Report",
+    url: "/dashboard/report",
+    icon: IconReport,
+    requiredPermission: "reports:read",
+  },
+  {
+    title: "Users",
+    url: "/dashboard/users",
+    icon: IconUsers,
+    requiredPermission: "users:read",
+  },
+  {
+    title: "Assets",
+    url: "/dashboard/assets",
+    icon: IconPackage,
+    requiredPermission: "assets:read",
+  },
+];
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: User;
 }
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
-  // TODO: Re-enable when Better Auth is configured
-  // if (!user) {
-  //   throw new Error("AppSidebar requires a user but received undefined.");
-  // }
+  const filteredNav = React.useMemo(() => {
+    if (!user) return [];
+    const permissions = new Set(user.permissions ?? []);
+    const isSuperAdmin = user.role === "superadmin";
+
+    return navItems.filter((item) => {
+      if (!item.requiredPermission) return true;
+      if (isSuperAdmin) return true;
+      return permissions.has(item.requiredPermission);
+    });
+  }, [user]);
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -86,7 +107,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={filteredNav} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

@@ -6,9 +6,22 @@ const resendFromEmail = process.env.RESEND_FROM_EMAIL;
 const resend =
   resendApiKey && resendApiKey.length > 0 ? new Resend(resendApiKey) : null;
 
+const appBaseUrl =
+  process.env.APP_URL ||
+  process.env.BETTER_AUTH_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  "http://localhost:3000";
+
 type ResetPasswordPayload = {
   to: string;
   url: string;
+  name?: string | null;
+};
+
+type UserInvitePayload = {
+  to: string;
+  token: string;
+  inviter: string;
   name?: string | null;
 };
 
@@ -62,5 +75,68 @@ export async function sendResetPasswordEmail({
     console.error("[email] Failed to send reset password email", error);
     throw error;
   }
+}
+
+export async function sendUserInviteEmail({
+  to,
+  token,
+  inviter,
+  name,
+}: UserInvitePayload) {
+  if (!to || !token) {
+    console.warn("[email] Missing recipient or token for invite.");
+    return;
+  }
+
+  const inviteUrl = buildInviteUrl(token);
+  const previewText = "You’ve been invited to RAMS";
+  const safeName = name || "there";
+
+  if (!resend || !resendFromEmail) {
+    console.info(
+      `[email] RESEND_API_KEY or RESEND_FROM_EMAIL missing. Provide both env vars to deliver email.\nInvite link for ${to}: ${inviteUrl}`
+    );
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from: resendFromEmail,
+      to,
+      subject: "You're invited to RAMS",
+      headers: {
+        "X-Entity-Ref-ID": "rams-user-invite",
+      },
+      text: [
+        `Hi ${safeName},`,
+        "",
+        `${inviter} invited you to the RAMS dashboard.`,
+        "Use the secure link below to activate your account and set a password:",
+        inviteUrl,
+        "",
+        "This link expires in 7 days. If it stops working, ask your admin to resend the invite.",
+        "",
+        "— RAMS Team",
+      ].join("\n"),
+      html: `
+        <p>Hi ${safeName},</p>
+        <p><strong>${inviter}</strong> invited you to the RAMS dashboard.</p>
+        <p>Use the secure link below to activate your account and set a password:</p>
+        <p><a href="${inviteUrl}" target="_blank" rel="noopener noreferrer">Accept invitation</a></p>
+        <p>This link expires in 7 days. If it stops working, ask your admin to resend the invite.</p>
+        <p>— RAMS Team</p>
+      `,
+    });
+  } catch (error) {
+    console.error("[email] Failed to send user invite email", error);
+    throw error;
+  }
+}
+
+function buildInviteUrl(token: string) {
+  const trimmed = appBaseUrl.replace(/\/$/, "");
+  const url = new URL(`${trimmed}/auth/accept-invite`);
+  url.searchParams.set("token", token);
+  return url.toString();
 }
 
