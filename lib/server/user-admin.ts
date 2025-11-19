@@ -1,4 +1,6 @@
-import { eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+
+import { and, eq } from "drizzle-orm";
 
 import { db, type Database, schema } from "@/db";
 import type { User } from "@/db/schema";
@@ -39,6 +41,50 @@ export async function generateUniqueUsername(
     attempt += 1;
     candidate = `${base}-${attempt}`;
   }
+}
+
+type DbExecutor = Pick<Database, "select" | "update" | "insert">;
+
+export async function upsertCredentialAccount(
+  tx: DbExecutor,
+  userId: string,
+  passwordHash: string
+) {
+  const credentialProvider = "credential";
+
+  const [existingAccount] = await tx
+    .select()
+    .from(schema.account)
+    .where(
+      and(
+        eq(schema.account.userId, userId),
+        eq(schema.account.providerId, credentialProvider)
+      )
+    )
+    .limit(1);
+
+  const now = new Date();
+
+  if (existingAccount) {
+    await tx
+      .update(schema.account)
+      .set({
+        password: passwordHash,
+        updatedAt: now,
+      })
+      .where(eq(schema.account.id, existingAccount.id));
+    return;
+  }
+
+  await tx.insert(schema.account).values({
+    id: randomUUID(),
+    userId,
+    providerId: credentialProvider,
+    accountId: userId,
+    password: passwordHash,
+    createdAt: now,
+    updatedAt: now,
+  });
 }
 
 function slugifyEmail(email: string) {

@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
+import { MoreHorizontal, Eye, Edit, Trash2, RefreshCw, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,15 +17,28 @@ import { TransformedUser } from "../types/user-types";
 import Link from "next/link";
 import { useState } from "react";
 import { DeleteUserDialog } from "./delete-user-dialog";
-import { useDeleteUser } from "../hooks/useUserMutations";
+import { useDeleteUser, useUpdateUser } from "../hooks/useUserMutations";
 
 export const useUserColumns = (): ColumnDef<TransformedUser>[] => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<TransformedUser | null>(null);
+  const [resendingUserId, setResendingUserId] = useState<string | null>(null);
+  const { mutateAsync: resendInviteMutation } = useUpdateUser();
 
   const handleDeleteClick = (user: TransformedUser) => {
     setUserToDelete(user);
     setDeleteDialogOpen(true);
+  };
+
+  const handleResendInvite = async (user: TransformedUser) => {
+    setResendingUserId(user.id);
+    try {
+      await resendInviteMutation({ id: user.id, resendInvite: true });
+    } catch (error) {
+      console.error("Resend invite error:", error);
+    } finally {
+      setResendingUserId(null);
+    }
   };
 
   return [
@@ -88,10 +101,35 @@ export const useUserColumns = (): ColumnDef<TransformedUser>[] => {
           suspended: "bg-destructive/10 text-destructive",
           invited: "bg-accent text-accent-foreground",
         };
+        const isPending = resendingUserId === row.original.id;
+
         return (
-          <Badge className={statusColors[status] || "bg-muted text-muted-foreground"}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge className={statusColors[status] || "bg-muted text-muted-foreground"}>
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+            </Badge>
+            {status === "invited" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={() => handleResendInvite(row.original)}
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                    Sending
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-1 h-3 w-3" />
+                    Resend
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         );
       },
     },

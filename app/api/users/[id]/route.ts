@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { and, eq, ne } from "drizzle-orm";
 import { hashPassword } from "better-auth/crypto";
 
-import { db, schema, type Database } from "@/db";
+import { db, schema } from "@/db";
 import {
   updateUserSchema,
   userResponseSchema,
@@ -18,8 +18,12 @@ import {
   assertRoleGrant,
   requireUserWithPermission,
 } from "@/lib/server/authz";
-import { serializeUser } from "@/lib/server/user-admin";
+import {
+  serializeUser,
+  upsertCredentialAccount,
+} from "@/lib/server/user-admin";
 import type { PermissionKey } from "@/lib/permissions";
+import { sendUserInviteEmail } from "@/lib/email";
 
 type RouteParams = {
   params: Promise<{
@@ -141,6 +145,15 @@ export async function PATCH(
       updatedUser = freshUser;
     });
 
+    if (payload.resendInvite && updatedUser.invitationToken) {
+      await dispatchInviteEmail({
+        email: updatedUser.email,
+        token: updatedUser.invitationToken,
+        name: updatedUser.name,
+        inviterName: actor.name ?? actor.email ?? "RAMS Admin",
+      });
+    }
+
     return NextResponse.json(
       userResponseSchema.parse(serializeUser(updatedUser))
     );
@@ -190,48 +203,30 @@ function dedupePermissions(permissions: PermissionKey[]) {
   return Array.from(new Set(permissions));
 }
 
-type DbExecutor = Pick<Database, "select" | "update" | "insert">;
-
-async function upsertCredentialAccount(
-  tx: DbExecutor,
-  userId: string,
-  passwordHash: string
-) {
-  const credentialProvider = "credential";
-
-  const [existingAccount] = await tx
-    .select()
-    .from(schema.account)
-    .where(
-      and(
-        eq(schema.account.userId, userId),
-        eq(schema.account.providerId, credentialProvider)
-      )
-    )
-    .limit(1);
-
-  const now = new Date();
-
-  if (existingAccount) {
-    await tx
-      .update(schema.account)
-      .set({
-        password: passwordHash,
-        updatedAt: now,
-      })
-      .where(eq(schema.account.id, existingAccount.id));
-    return;
+async function dispatchInviteEmail({
+  email,
+  token,
+  name,
+  inviterName,
+}: {
+  email: string;
+  token: string;
+  name?: string | null;
+  inviterName: string;
+}) {
+  try {
+    await sendUserInviteEmail({
+      to: email,
+      token,
+      name,
+      inviter: inviterName,
+    });
+  } catch (error) {
+    console.error(
+      `[users] Failed to dispatch invite email for ${email}`,
+      error
+    );
   }
-
-  await tx.insert(schema.account).values({
-    id: randomUUID(),
-    userId,
-    providerId: credentialProvider,
-    accountId: userId,
-    password: passwordHash,
-    createdAt: now,
-    updatedAt: now,
-  });
 }
 
 
