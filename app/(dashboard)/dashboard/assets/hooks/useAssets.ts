@@ -1,85 +1,39 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { getAssets, getAssetStats } from "../services/asset-service";
-import { AssetQuery, PaginatedAssetResponse } from "../schemas/asset-schemas";
+import { useQuery } from "@tanstack/react-query";
+import {
+  getAssets,
+  getAssetStats,
+  getDecommissionStats,
+} from "../services/asset-service";
+import { AssetQuery } from "../schemas/asset-schemas";
 
-/**
- * Hook to fetch paginated list of assets
- * TODO: Upgrade to @tanstack/react-query when backend is ready
- */
 export const useAssets = (query: AssetQuery) => {
-  const [data, setData] = useState<PaginatedAssetResponse | undefined>();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchAssets = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const result = await getAssets(query);
-        if (!cancelled) {
-          setData(result);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err : new Error("Failed to fetch assets"));
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchAssets();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [JSON.stringify(query)]);
-
-  return { data, isLoading, error };
+  return useQuery({
+    queryKey: ["assets", query],
+    queryFn: () => getAssets(query),
+  });
 };
 
-/**
- * Hook to fetch asset statistics/KPIs
- */
 export const useAssetStats = () => {
-  const [data, setData] = useState<any>(undefined);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchStats = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const result = await getAssetStats();
-        if (!cancelled) {
-          setData(result);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err : new Error("Failed to fetch stats"));
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchStats();
-  }, []);
-
-  return { data, isLoading, error };
+  return useQuery({
+    queryKey: ["asset-stats"],
+    queryFn: getAssetStats,
+    staleTime: 1000 * 60 * 5,
+  });
 };
 
+export const useDecommissionStats = () => {
+  return useQuery({
+    queryKey: ["decommission-stats"],
+    queryFn: getDecommissionStats,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const useDecommissionedAssets = (query: AssetQuery) => {
+  return useAssets({
+    ...query,
+    status: "Decommissioned",
+  });
+};

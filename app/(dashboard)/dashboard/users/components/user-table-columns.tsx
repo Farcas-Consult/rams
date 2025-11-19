@@ -177,8 +177,6 @@ export const useUserColumns = (): ColumnDef<TransformedUser>[] => {
               user={userToDelete}
               onSuccess={() => {
                 setUserToDelete(null);
-                // Optionally refresh the page or invalidate queries
-                window.location.reload();
               }}
             />
           </>

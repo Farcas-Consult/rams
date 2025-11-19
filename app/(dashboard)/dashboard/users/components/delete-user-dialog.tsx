@@ -26,7 +26,7 @@ export function DeleteUserDialog({
   user,
   onSuccess,
 }: DeleteUserDialogProps) {
-  const { mutate: deleteUser, isPending } = useDeleteUser();
+  const { mutateAsync: deleteUser, isPending } = useDeleteUser();
 
   const handleConfirm = async () => {
     if (!user) return;

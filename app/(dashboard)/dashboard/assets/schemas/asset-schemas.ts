@@ -3,12 +3,20 @@ import { z } from "zod";
 /**
  * Schema for creating a new asset
  */
+export const assetStatusEnum = z.enum([
+  "Active",
+  "Inactive",
+  "Maintenance",
+  "Decommissioned",
+  "Retired",
+]);
+
 export const createAssetSchema = z.object({
   assetTag: z.string().optional(),
   assetName: z.string().min(1, "Asset name is required"),
   category: z.string().optional(),
   location: z.string().optional(),
-  status: z.string().optional(),
+  status: assetStatusEnum.default("Active"),
   assignedTo: z.string().optional(),
   purchaseDate: z.string().optional(),
   purchasePrice: z.number().optional(),
@@ -27,7 +35,7 @@ export const updateAssetSchema = z.object({
   assetName: z.string().min(1, "Asset name is required").optional(),
   category: z.string().optional(),
   location: z.string().optional(),
-  status: z.string().optional(),
+  status: assetStatusEnum.optional(),
   assignedTo: z.string().optional(),
   purchaseDate: z.string().optional(),
   purchasePrice: z.number().optional(),
@@ -67,7 +75,7 @@ export const assetResponseSchema = z.object({
   assetName: z.string(),
   category: z.string().optional(),
   location: z.string().optional(),
-  status: z.string().optional(),
+  status: assetStatusEnum.optional(),
   assignedTo: z.string().optional(),
   purchaseDate: z.date().or(z.string()).optional(),
   purchasePrice: z.number().optional(),
@@ -97,4 +105,5 @@ export type ImportAssetsInput = z.infer<typeof importAssetsSchema>;
 export type AssetQuery = z.infer<typeof assetQuerySchema>;
 export type AssetResponse = z.infer<typeof assetResponseSchema>;
 export type PaginatedAssetResponse = z.infer<typeof paginatedAssetResponseSchema>;
+export type AssetStatus = z.infer<typeof assetStatusEnum>;
 

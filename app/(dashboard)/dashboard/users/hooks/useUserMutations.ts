@@ -1,85 +1,54 @@
 "use client";
 
-import { useState } from "react";
-import {
-  createUser,
-  updateUser,
-  deleteUser,
-} from "../services/user-service";
-import {
-  CreateUserInput,
-  UpdateUserInput,
-} from "../schemas/user-schemas";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { createUser, updateUser, deleteUser } from "../services/user-service";
+import { CreateUserInput, UpdateUserInput } from "../schemas/user-schemas";
 
-/**
- * Hook to create a new user
- * TODO: Upgrade to @tanstack/react-query when backend is ready
- */
 export const useCreateUser = () => {
-  const [isPending, setIsPending] = useState(false);
+  const queryClient = useQueryClient();
 
-  const mutate = async (data: CreateUserInput) => {
-    setIsPending(true);
-    try {
-      const result = await createUser(data);
+  return useMutation({
+    mutationFn: (data: CreateUserInput) => createUser(data),
+    onSuccess: () => {
       toast.success("User created successfully");
-      return result;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to create user";
-      toast.error(message);
-      throw error;
-    } finally {
-      setIsPending(false);
-    }
-  };
-
-  return { mutate, isPending };
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["user-stats"] });
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to create user: ${error.message}`);
+    },
+  });
 };
 
-/**
- * Hook to update an existing user
- */
 export const useUpdateUser = () => {
-  const [isPending, setIsPending] = useState(false);
+  const queryClient = useQueryClient();
 
-  const mutate = async (data: UpdateUserInput) => {
-    setIsPending(true);
-    try {
-      const result = await updateUser(data);
+  return useMutation({
+    mutationFn: (data: UpdateUserInput) => updateUser(data),
+    onSuccess: () => {
       toast.success("User updated successfully");
-      return result;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to update user";
-      toast.error(message);
-      throw error;
-    } finally {
-      setIsPending(false);
-    }
-  };
-
-  return { mutate, isPending };
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["user-stats"] });
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update user: ${error.message}`);
+    },
+  });
 };
 
-/**
- * Hook to delete a user
- */
 export const useDeleteUser = () => {
-  const [isPending, setIsPending] = useState(false);
+  const queryClient = useQueryClient();
 
-  const mutate = async (id: string) => {
-    setIsPending(true);
-    try {
-      await deleteUser(id);
+  return useMutation({
+    mutationFn: (id: string) => deleteUser(id),
+    onSuccess: () => {
       toast.success("User deleted successfully");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to delete user";
-      toast.error(message);
-      throw error;
-    } finally {
-      setIsPending(false);
-    }
-  };
-
-  return { mutate, isPending };
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["user-stats"] });
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete user: ${error.message}`);
+    },
+  });
 };

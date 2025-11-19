@@ -19,9 +19,11 @@ const API_BASE_URL = "/api/assets"; // Will be used when backend is ready
 /**
  * Generate dummy assets for development
  */
+const STATUSES = ["Active", "Inactive", "Maintenance", "Decommissioned", "Retired"] as const;
+
 const generateDummyAssets = (count: number = 20): AssetResponse[] => {
   const categories = ["IT Equipment", "Furniture", "Vehicles", "Machinery", "Electronics"];
-  const statuses = ["Active", "Inactive", "Maintenance", "Disposed"];
+  const statuses = STATUSES;
   const locations = ["Office A", "Office B", "Warehouse", "Remote", "Field"];
   const manufacturers = ["Dell", "HP", "Apple", "Samsung", "Lenovo", "Microsoft"];
   const models = ["Model X", "Model Y", "Pro Series", "Enterprise", "Standard"];
@@ -200,6 +202,7 @@ export const updateAsset = async (
     ...existingAsset,
     ...data,
     id: data.id,
+    status: data.status || existingAsset.status,
     purchaseDate: data.purchaseDate ? new Date(data.purchaseDate) : existingAsset.purchaseDate,
     updatedAt: new Date(),
   };
@@ -214,6 +217,34 @@ export const deleteAsset = async (id: string): Promise<void> => {
 };
 
 /**
+ * Decommission an asset (mark as Decommissioned)
+ */
+export const decommissionAsset = async (id: string): Promise<AssetResponse> => {
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  const asset = generateDummyAssets(1)[0];
+  return {
+    ...asset,
+    id,
+    status: "Decommissioned",
+    updatedAt: new Date(),
+  };
+};
+
+/**
+ * Recommission an asset (set status back to Active)
+ */
+export const recommissionAsset = async (id: string): Promise<AssetResponse> => {
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  const asset = generateDummyAssets(1)[0];
+  return {
+    ...asset,
+    id,
+    status: "Active",
+    updatedAt: new Date(),
+  };
+};
+
+/**
  * Get asset statistics/KPIs
  */
 export const getAssetStats = async () => {
@@ -224,6 +255,8 @@ export const getAssetStats = async () => {
   const activeCount = allAssets.filter((a) => a.status === "Active").length;
   const totalValue = allAssets.reduce((sum, a) => sum + (a.purchasePrice || 0), 0);
   const categoriesCount = new Set(allAssets.map((a) => a.category)).size;
+  const decommissionedCount = allAssets.filter((a) => a.status === "Decommissioned").length;
+  const maintenanceCount = allAssets.filter((a) => a.status === "Maintenance").length;
 
   return {
     totalAssets: allAssets.length,
@@ -231,6 +264,37 @@ export const getAssetStats = async () => {
     totalValue,
     categoriesCount,
     locationsCount: new Set(allAssets.map((a) => a.location)).size,
+    decommissionedAssets: decommissionedCount,
+    maintenanceAssets: maintenanceCount,
+  };
+};
+
+/**
+ * Get decommissioning-specific stats
+ */
+export const getDecommissionStats = async () => {
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  const allAssets = generateDummyAssets(50);
+  const decommissioned = allAssets.filter((a) => a.status === "Decommissioned");
+  const pendingDisposal = decommissioned.slice(0, Math.floor(decommissioned.length * 0.4));
+  const readyForRecommission = decommissioned.slice(Math.floor(decommissioned.length * 0.4));
+
+  const avgDowntime =
+    decommissioned.length > 0
+      ? Math.round(
+          decommissioned.reduce((sum, asset) => {
+            const updated = new Date(asset.updatedAt).getTime();
+            const created = new Date(asset.createdAt).getTime();
+            return sum + Math.max(0, (updated - created) / (1000 * 60 * 60 * 24));
+          }, 0) / decommissioned.length
+        )
+      : 0;
+
+  return {
+    totalDecommissioned: decommissioned.length,
+    readyForRecommission: readyForRecommission.length,
+    pendingDisposal: pendingDisposal.length,
+    averageDowntimeDays: avgDowntime,
   };
 };
 

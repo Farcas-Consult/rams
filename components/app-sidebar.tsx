@@ -79,7 +79,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
             >
               <a href="#">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Dashboard</span>
+                <span className="text-base font-semibold">RAMS Assets</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -21,7 +21,6 @@ import { toast } from "sonner";
 interface ImportAssetsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
 }
 
 /**
@@ -49,12 +48,11 @@ const EXCEL_COLUMN_MAPPING: Record<string, keyof CreateAssetInput> = {
 export function ImportAssetsDialog({
   open,
   onOpenChange,
-  onSuccess,
 }: ImportAssetsDialogProps) {
   const [file, setFile] = React.useState<File | null>(null);
   const [preview, setPreview] = React.useState<CreateAssetInput[]>([]);
   const [isProcessing, setIsProcessing] = React.useState(false);
-  const { mutate: importAssets, isPending } = useImportAssets();
+  const { mutateAsync: importAssets, isPending } = useImportAssets();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -160,7 +158,6 @@ export function ImportAssetsDialog({
       onOpenChange(false);
       setFile(null);
       setPreview([]);
-      onSuccess?.();
     } catch (error) {
       // Error is handled by the mutation hook
       console.error("Import error:", error);

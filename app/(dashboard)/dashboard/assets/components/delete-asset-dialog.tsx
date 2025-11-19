@@ -26,7 +26,7 @@ export function DeleteAssetDialog({
   asset,
   onSuccess,
 }: DeleteAssetDialogProps) {
-  const { mutate: deleteAsset, isPending } = useDeleteAsset();
+  const { mutateAsync: deleteAsset, isPending } = useDeleteAsset();
 
   const handleConfirm = async () => {
     if (!asset) return;

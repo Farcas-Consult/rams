@@ -22,7 +22,7 @@ const config: runtime.GetPrismaClientConfig = {
       "value": "prisma-client"
     },
     "output": {
-      "value": "/Users/achourmeguenni/Workspace/nextjs-better-auth/src/generated/prisma",
+      "value": "/Users/ricokakai/projects/FCL_SERVICES/rams/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -36,7 +36,7 @@ const config: runtime.GetPrismaClientConfig = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/achourmeguenni/Workspace/nextjs-better-auth/prisma/schema.prisma",
+    "sourceFilePath": "/Users/ricokakai/projects/FCL_SERVICES/rams/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativePath": "../../../prisma",
@@ -46,7 +46,7 @@ const config: runtime.GetPrismaClientConfig = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {

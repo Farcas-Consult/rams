@@ -51,8 +51,8 @@ const USER_STATUS_OPTIONS = [
 
 export function UserForm({ mode, initialData, userId }: UserFormProps) {
   const router = useRouter();
-  const { mutate: createUser, isPending: isCreating } = useCreateUser();
-  const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();
+  const { mutateAsync: createUser, isPending: isCreating } = useCreateUser();
+  const { mutateAsync: updateUser, isPending: isUpdating } = useUpdateUser();
 
   const isPending = isCreating || isUpdating;
 
