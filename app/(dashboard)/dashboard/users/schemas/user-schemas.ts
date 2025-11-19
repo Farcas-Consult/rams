@@ -6,7 +6,7 @@ import { z } from "zod";
 export const createUserSchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name is too long"),
   email: z.string().email("Invalid email address"),
-  image: z.string().url("Invalid image URL").optional().nullable(),
+  password: z.string().min(8, "Password must be at least 8 characters"),
   emailVerified: z.boolean().default(false),
 });
 
@@ -17,7 +17,7 @@ export const updateUserSchema = z.object({
   id: z.string().min(1, "User ID is required"),
   name: z.string().min(1, "Name is required").max(255, "Name is too long").optional(),
   email: z.string().email("Invalid email address").optional(),
-  image: z.string().url("Invalid image URL").optional().nullable(),
+  password: z.string().min(8, "Password must be at least 8 characters").optional(),
   emailVerified: z.boolean().optional(),
 });
 

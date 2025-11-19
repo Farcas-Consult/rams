@@ -1,10 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -17,8 +16,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   Form,
   FormControl,
@@ -55,13 +54,13 @@ export function UserForm({ mode, initialData, userId }: UserFormProps) {
             id: userId || initialData.id,
             name: initialData.name || "",
             email: initialData.email || "",
-            image: initialData.image || "",
+            password: "",
             emailVerified: initialData.emailVerified ?? false,
           }
         : {
             name: "",
             email: "",
-            image: "",
+            password: "",
             emailVerified: false,
           },
   });
@@ -73,7 +72,11 @@ export function UserForm({ mode, initialData, userId }: UserFormProps) {
         router.push("/dashboard/users");
         router.refresh();
       } else {
-        await updateUser(data as UpdateUserInput);
+        const payload = { ...data } as UpdateUserInput;
+        if (!payload.password) {
+          delete payload.password;
+        }
+        await updateUser(payload);
         router.push("/dashboard/users");
         router.refresh();
       }
@@ -157,27 +160,49 @@ export function UserForm({ mode, initialData, userId }: UserFormProps) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="image"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Profile Image URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="url"
-                      placeholder="https://example.com/avatar.jpg"
-                      autoComplete="off"
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Optional. URL to the user's profile image.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {mode === "create" ? (
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <PasswordInput
+                        {...field}
+                        placeholder="Enter a secure password"
+                        autoComplete="new-password"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Password must be at least 8 characters long.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New Password</FormLabel>
+                    <FormControl>
+                      <PasswordInput
+                        {...field}
+                        placeholder="Leave blank to keep current password"
+                        autoComplete="new-password"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Leave blank to keep the existing password.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}

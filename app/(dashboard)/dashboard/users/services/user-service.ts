@@ -144,12 +144,15 @@ export const createUser = async (
 
   await new Promise((resolve) => setTimeout(resolve, 500));
 
+  const { password, ...rest } = data;
+  void password;
+
   const newUser: UserResponse = {
     id: `user-${Date.now()}`,
-    name: data.name,
-    email: data.email,
-    emailVerified: data.emailVerified ?? false,
-    image: data.image ?? null,
+    name: rest.name,
+    email: rest.email,
+    emailVerified: rest.emailVerified ?? false,
+    image: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -174,9 +177,12 @@ export const updateUser = async (
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   const existingUser = generateDummyUsers(1)[0];
+  const { password, ...rest } = data;
+  void password;
+
   return {
     ...existingUser,
-    ...data,
+    ...rest,
     id: data.id,
     updatedAt: new Date(),
   };
