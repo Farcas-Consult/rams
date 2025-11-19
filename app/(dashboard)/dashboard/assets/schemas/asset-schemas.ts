@@ -3,20 +3,17 @@ import { z } from "zod";
 /**
  * Schema for creating a new asset
  */
-export const assetStatusEnum = z.enum([
-  "Active",
-  "Inactive",
-  "Maintenance",
-  "Decommissioned",
-  "Retired",
-]);
-
 export const createAssetSchema = z.object({
+  plnt: z.string().optional(),
+  equipment: z.string().optional(),
+  material: z.string().optional(),
+  materialDescription: z.string().optional(),
+  techIdentNo: z.string().optional(),
   assetTag: z.string().optional(),
   assetName: z.string().min(1, "Asset name is required"),
   category: z.string().optional(),
   location: z.string().optional(),
-  status: assetStatusEnum.default("Active"),
+  status: z.string().optional(),
   assignedTo: z.string().optional(),
   purchaseDate: z.string().optional(),
   purchasePrice: z.number().optional(),
@@ -24,6 +21,25 @@ export const createAssetSchema = z.object({
   manufacturer: z.string().optional(),
   model: z.string().optional(),
   description: z.string().optional(),
+  manufSerialNumber: z.string().optional(),
+  sysStatus: z.string().optional(),
+  userStatusRaw: z.string().optional(),
+  sLoc: z.string().optional(),
+  pfUserAc: z.string().optional(),
+  pfUserAccountableDescription: z.string().optional(),
+  pfPropMg: z.string().optional(),
+  pfPropMgmFocalPointDescription: z.string().optional(),
+  functionalLoc: z.string().optional(),
+  functionalLocDescription: z.string().optional(),
+  aGrp: z.string().optional(),
+  busA: z.string().optional(),
+  objectType: z.string().optional(),
+  costCtr: z.string().optional(),
+  acquistnValue: z.number().optional(),
+  comment: z.string().optional(),
+  origin: z.string().optional(),
+  discoveryStatus: z.string().optional(),
+  isDecommissioned: z.boolean().optional(),
 });
 
 /**
@@ -31,11 +47,16 @@ export const createAssetSchema = z.object({
  */
 export const updateAssetSchema = z.object({
   id: z.string().min(1, "Asset ID is required"),
+  plnt: z.string().optional(),
+  equipment: z.string().optional(),
+  material: z.string().optional(),
+  materialDescription: z.string().optional(),
+  techIdentNo: z.string().optional(),
   assetTag: z.string().optional(),
   assetName: z.string().min(1, "Asset name is required").optional(),
   category: z.string().optional(),
   location: z.string().optional(),
-  status: assetStatusEnum.optional(),
+  status: z.string().optional(),
   assignedTo: z.string().optional(),
   purchaseDate: z.string().optional(),
   purchasePrice: z.number().optional(),
@@ -43,6 +64,25 @@ export const updateAssetSchema = z.object({
   manufacturer: z.string().optional(),
   model: z.string().optional(),
   description: z.string().optional(),
+  manufSerialNumber: z.string().optional(),
+  sysStatus: z.string().optional(),
+  userStatusRaw: z.string().optional(),
+  sLoc: z.string().optional(),
+  pfUserAc: z.string().optional(),
+  pfUserAccountableDescription: z.string().optional(),
+  pfPropMg: z.string().optional(),
+  pfPropMgmFocalPointDescription: z.string().optional(),
+  functionalLoc: z.string().optional(),
+  functionalLocDescription: z.string().optional(),
+  aGrp: z.string().optional(),
+  busA: z.string().optional(),
+  objectType: z.string().optional(),
+  costCtr: z.string().optional(),
+  acquistnValue: z.number().optional(),
+  comment: z.string().optional(),
+  origin: z.string().optional(),
+  discoveryStatus: z.string().optional(),
+  isDecommissioned: z.boolean().optional(),
 });
 
 /**
@@ -81,11 +121,16 @@ export const assetQuerySchema = z.object({
  */
 export const assetResponseSchema = z.object({
   id: z.string(),
+  plnt: z.string().optional(),
+  equipment: z.string().optional(),
+  material: z.string().optional(),
+  materialDescription: z.string().optional(),
+  techIdentNo: z.string().optional(),
   assetTag: z.string().optional(),
   assetName: z.string(),
   category: z.string().optional(),
   location: z.string().optional(),
-  status: assetStatusEnum.optional(),
+  status: z.string().optional(),
   assignedTo: z.string().optional(),
   purchaseDate: z.date().or(z.string()).optional(),
   purchasePrice: z.number().optional(),
@@ -93,8 +138,27 @@ export const assetResponseSchema = z.object({
   manufacturer: z.string().optional(),
   model: z.string().optional(),
   description: z.string().optional(),
+  manufSerialNumber: z.string().optional(),
+  sysStatus: z.string().optional(),
+  userStatusRaw: z.string().optional(),
+  sLoc: z.string().optional(),
+  pfUserAc: z.string().optional(),
+  pfUserAccountableDescription: z.string().optional(),
+  pfPropMg: z.string().optional(),
+  pfPropMgmFocalPointDescription: z.string().optional(),
+  functionalLoc: z.string().optional(),
+  functionalLocDescription: z.string().optional(),
+  aGrp: z.string().optional(),
+  busA: z.string().optional(),
+  objectType: z.string().optional(),
+  costCtr: z.string().optional(),
+  acquistnValue: z.number().optional(),
+  comment: z.string().optional(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
+  origin: z.string().optional(),
+  discoveryStatus: z.string().optional(),
+  isDecommissioned: z.boolean().optional(),
 });
 
 /**
@@ -102,6 +166,7 @@ export const assetResponseSchema = z.object({
  */
 export const paginatedAssetResponseSchema = z.object({
   assets: z.array(assetResponseSchema),
+  undiscoveredAssets: z.array(assetResponseSchema).optional(),
   total: z.number().int().nonnegative(),
   page: z.number().int().positive(),
   pageSize: z.number().int().positive(),
@@ -115,5 +180,3 @@ export type ImportAssetsInput = z.infer<typeof importAssetsSchema>;
 export type AssetQuery = z.infer<typeof assetQuerySchema>;
 export type AssetResponse = z.infer<typeof assetResponseSchema>;
 export type PaginatedAssetResponse = z.infer<typeof paginatedAssetResponseSchema>;
-export type AssetStatus = z.infer<typeof assetStatusEnum>;
-

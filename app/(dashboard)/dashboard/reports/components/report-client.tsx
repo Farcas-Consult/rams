@@ -248,6 +248,16 @@ export function ReportClient({ columns, rows }: ReportClientProps) {
 
   return (
     <div className="space-y-6">
+      <ReportAnalytics
+        rows={filteredRows}
+        metricKeys={{
+          acquisitionValue: columnMap.acquisitionValue,
+          systemStatus: columnMap.systemStatus,
+          mission: columnMap.mission,
+          direction: columnMap.direction,
+        }}
+      />
+
       <div className="flex flex-col gap-4 rounded-xl border border-border/70 bg-card/40 p-4 lg:flex-row lg:items-end">
         <div className="flex min-w-[260px] flex-1 flex-col gap-1">
           <Label htmlFor="report-search">Search</Label>
@@ -323,16 +333,6 @@ export function ReportClient({ columns, rows }: ReportClientProps) {
           </Button>
         </div>
       </div>
-
-      <ReportAnalytics
-        rows={filteredRows}
-        metricKeys={{
-          acquisitionValue: columnMap.acquisitionValue,
-          systemStatus: columnMap.systemStatus,
-          mission: columnMap.mission,
-          direction: columnMap.direction,
-        }}
-      />
 
       <GenericTable
         data={paginatedRows}

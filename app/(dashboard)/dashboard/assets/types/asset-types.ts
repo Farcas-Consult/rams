@@ -4,6 +4,11 @@
  */
 export type Asset = {
   id: string;
+  plnt?: string;
+  equipment?: string;
+  material?: string;
+  materialDescription?: string;
+  techIdentNo?: string;
   assetTag?: string;
   assetName: string;
   category?: string;
@@ -16,8 +21,27 @@ export type Asset = {
   manufacturer?: string;
   model?: string;
   description?: string;
+  manufSerialNumber?: string;
+  sysStatus?: string;
+  userStatusRaw?: string;
+  sLoc?: string;
+  pfUserAc?: string;
+  pfUserAccountableDescription?: string;
+  pfPropMg?: string;
+  pfPropMgmFocalPointDescription?: string;
+  functionalLoc?: string;
+  functionalLocDescription?: string;
+  aGrp?: string;
+  busA?: string;
+  objectType?: string;
+  costCtr?: string;
+  acquistnValue?: number;
+  comment?: string;
   createdAt: Date | string;
   updatedAt: Date | string;
+  origin?: string;
+  discoveryStatus?: string;
+  isDecommissioned?: boolean;
 };
 
 /**

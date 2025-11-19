@@ -4,15 +4,16 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
+  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
+import { Label } from "@/components/ui/label";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { AssetReportColumn, AssetReportRow } from "../lib/get-asset-report";
 
 type ReportRecordDrawerProps = {
@@ -22,35 +23,31 @@ type ReportRecordDrawerProps = {
 };
 
 export function ReportRecordDrawer({ triggerLabel, record, columns }: ReportRecordDrawerProps) {
+  const isMobile = useIsMobile();
+
   return (
-    <Drawer>
+    <Drawer direction={isMobile ? "bottom" : "right"}>
       <DrawerTrigger asChild>
         <Button variant="link" className="px-0 font-semibold">
           {triggerLabel || "—"}
         </Button>
       </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle className="text-left text-lg font-semibold">
-            Asset #{triggerLabel || "N/A"}
-          </DrawerTitle>
+      <DrawerContent className="sm:max-w-[520px]">
+        <DrawerHeader className="gap-1">
+          <DrawerTitle className="text-left text-lg font-semibold">Asset #{triggerLabel || "N/A"}</DrawerTitle>
+          <DrawerDescription>Full report record with every column from the spreadsheet.</DrawerDescription>
         </DrawerHeader>
-        <ScrollArea className="max-h-[70vh] px-6">
-          <div className="space-y-4 py-2">
+        <ScrollArea className="h-[60vh] px-4">
+          <div className="grid gap-4 pb-4">
             {columns.map((column) => (
-              <div key={column.key} className="space-y-1">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {column.label}
-                </p>
-                <p className="rounded-md border border-dashed border-border/60 bg-muted/30 px-3 py-2 text-sm">
-                  {record[column.key]?.trim() || "—"}
-                </p>
-                <Separator />
+              <div key={column.key} className="space-y-1 border-b pb-3 text-sm last:border-0 last:pb-0">
+                <Label className="text-xs uppercase text-muted-foreground">{column.label}</Label>
+                <div className="font-medium break-words">{record[column.key]?.trim() || "—"}</div>
               </div>
             ))}
           </div>
         </ScrollArea>
-        <DrawerFooter>
+        <DrawerFooter className="flex-row justify-end gap-2 border-t px-4 py-3">
           <DrawerClose asChild>
             <Button variant="outline">Close</Button>
           </DrawerClose>

@@ -96,7 +96,10 @@ export default function AssetsPage() {
           </div>
         ) : (
           <GenericTable<TransformedAsset>
-            data={data?.assets || []}
+            data={[
+              ...(data?.assets ?? []),
+              ...(data?.undiscoveredAssets ?? []),
+            ]}
             columns={columns}
             pagination={pagination}
             setPagination={handlePaginationChange}

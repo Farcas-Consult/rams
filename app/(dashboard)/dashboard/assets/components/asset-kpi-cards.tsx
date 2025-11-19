@@ -1,6 +1,6 @@
 "use client";
 
-import { IconTrendingUp, IconPackage, IconMapPin, IconCurrencyDollar, IconCategory } from "@tabler/icons-react";
+import { IconTrendingUp, IconPackage, IconMapPin, IconCurrencyDollar, IconCategory, IconLoader } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -38,6 +38,7 @@ export function AssetKPICards() {
     totalValue = 0,
     categoriesCount = 0,
     locationsCount = 0,
+    undiscoveredAssets = 0,
   } = stats || {};
 
   return (
@@ -130,6 +131,28 @@ export function AssetKPICards() {
           </div>
           <div className="text-muted-foreground">
             Across {locationsCount} locations
+          </div>
+        </CardFooter>
+      </Card>
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Undiscovered Assets</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            {undiscoveredAssets}
+          </CardTitle>
+          <CardAction>
+            <Badge variant="outline" className="text-blue-600 dark:text-blue-400">
+              <IconLoader className="size-3" />
+              Pending
+            </Badge>
+          </CardAction>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            Awaiting cataloguing <IconLoader className="size-4 animate-spin" />
+          </div>
+          <div className="text-muted-foreground">
+            Assets discovered in the field but not yet imported
           </div>
         </CardFooter>
       </Card>

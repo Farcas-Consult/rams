@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
+import { MoreHorizontal, Eye, Trash2, Compass } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { TransformedAsset } from "../types/asset-types";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { DeleteAssetDialog } from "./delete-asset-dialog";
+import { AssetDetailDrawer } from "./asset-detail-drawer";
 
 export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -26,143 +27,78 @@ export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
     setDeleteDialogOpen(true);
   };
 
+  const summaryColumns: {
+    key: keyof TransformedAsset;
+    label: string;
+    formatter?: (value: any, row: TransformedAsset) => ReactNode;
+  }[] = [
+    { key: "plnt", label: "Plnt" },
+    {
+      key: "equipment",
+      label: "Equipment",
+      formatter: (value, row) => (
+        <AssetDetailDrawer asset={row}>
+          <Button variant="link" className="h-auto p-0 text-left font-mono">
+            {value || row.assetTag || "View Asset"}
+          </Button>
+        </AssetDetailDrawer>
+      ),
+    },
+    { key: "materialDescription", label: "Material Description" },
+    { key: "description", label: "Description" },
+    { key: "sysStatus", label: "SysStatus" },
+    { key: "userStatusRaw", label: "UserStatus" },
+    {
+      key: "acquistnValue",
+      label: "AcquistnValue",
+      formatter: (value) =>
+        typeof value === "number" ? (
+          <div className="text-sm font-medium">${value.toLocaleString()}</div>
+        ) : (
+          <span className="text-sm text-muted-foreground">—</span>
+        ),
+    },
+    { key: "comment", label: "Comment" },
+  ];
+
+  const dataColumns: ColumnDef<TransformedAsset>[] = summaryColumns.map(
+    ({ key, label, formatter }) => ({
+      accessorKey: key,
+      header: label,
+      cell: ({ row }) => {
+        const value = row.original[key];
+        if (formatter) {
+          return <div className="text-sm">{formatter(value, row.original)}</div>;
+        }
+        if (!value) {
+          return <span className="text-sm text-muted-foreground">—</span>;
+        }
+        return (
+          <div className="text-sm">
+            {typeof value === "string" && value.length > 60
+              ? `${value.slice(0, 60)}…`
+              : value}
+          </div>
+        );
+      },
+    })
+  );
+
   return [
+    ...dataColumns,
     {
-      accessorKey: "assetTag",
-      header: "Asset Tag",
+      id: "origin",
+      header: "Origin",
       cell: ({ row }) => {
+        const origin = row.original.origin || "inventory";
+        const isDiscovered = origin === "discovered";
         return (
-          <div className="text-sm font-mono font-medium">
-            {row.original.assetTag || "N/A"}
-          </div>
-        );
-      },
-      enableHiding: false,
-    },
-    {
-      accessorKey: "assetName",
-      header: "Asset Name",
-      cell: ({ row }) => {
-        return (
-          <div className="font-medium">{row.original.assetName}</div>
-        );
-      },
-      enableHiding: false,
-    },
-    {
-      accessorKey: "category",
-      header: "Category",
-      cell: ({ row }) => {
-        const category = row.original.category;
-        return category ? (
-          <Badge variant="outline">{category}</Badge>
-        ) : (
-          <span className="text-sm text-muted-foreground">N/A</span>
-        );
-      },
-    },
-    {
-      accessorKey: "location",
-      header: "Location",
-      cell: ({ row }) => {
-        return (
-          <div className="text-sm">
-            {row.original.location || "N/A"}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => {
-        const status = row.original.status || "Unknown";
-        const statusColors: Record<string, string> = {
-          Active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-          Inactive: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
-          Maintenance: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-          Decommissioned: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-          Retired: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-        };
-
-        return (
-          <Badge className={statusColors[status] || "bg-gray-100 text-gray-800"}>
-            {status}
+          <Badge
+            variant="outline"
+            className={isDiscovered ? "border-blue-400 text-blue-600 dark:text-blue-300" : ""}
+          >
+            {isDiscovered ? "Discovered" : "Catalogued"}
           </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "assignedTo",
-      header: "Assigned To",
-      cell: ({ row }) => {
-        return (
-          <div className="text-sm">
-            {row.original.assignedTo || (
-              <span className="text-muted-foreground">Unassigned</span>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "purchasePrice",
-      header: "Purchase Price",
-      cell: ({ row }) => {
-        const price = row.original.purchasePrice;
-        return price ? (
-          <div className="text-sm font-medium">
-            ${price.toLocaleString()}
-          </div>
-        ) : (
-          <span className="text-sm text-muted-foreground">N/A</span>
-        );
-      },
-    },
-    {
-      accessorKey: "purchaseDate",
-      header: "Purchase Date",
-      cell: ({ row }) => {
-        const date = row.original.purchaseDate;
-        if (!date) return <div className="text-sm text-muted-foreground">N/A</div>;
-
-        return (
-          <div className="text-sm">
-            {new Date(date).toLocaleDateString()}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "serialNumber",
-      header: "Serial Number",
-      cell: ({ row }) => {
-        return (
-          <div className="text-sm font-mono text-muted-foreground">
-            {row.original.serialNumber || "N/A"}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "manufacturer",
-      header: "Manufacturer",
-      cell: ({ row }) => {
-        return (
-          <div className="text-sm">
-            {row.original.manufacturer || "N/A"}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "model",
-      header: "Model",
-      cell: ({ row }) => {
-        return (
-          <div className="text-sm">
-            {row.original.model || "N/A"}
-          </div>
         );
       },
     },
@@ -171,6 +107,7 @@ export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
       header: "Actions",
       cell: ({ row }) => {
         const asset = row.original;
+        const isDiscovered = asset.origin === "discovered";
 
         return (
           <>
@@ -193,26 +130,30 @@ export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
                     View Details
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={`/dashboard/assets/${asset.id}/edit`}
-                    className="cursor-pointer"
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Asset
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-red-600 cursor-pointer"
-                  onClick={() => handleDeleteClick(asset)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Asset
-                </DropdownMenuItem>
+                {!isDiscovered ? (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-red-600 cursor-pointer"
+                      onClick={() => handleDeleteClick(asset)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete Asset
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/assets/new" className="cursor-pointer">
+                        <Compass className="mr-2 h-4 w-4" />
+                        Catalog Asset
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
-
             <DeleteAssetDialog
               open={deleteDialogOpen}
               onOpenChange={setDeleteDialogOpen}

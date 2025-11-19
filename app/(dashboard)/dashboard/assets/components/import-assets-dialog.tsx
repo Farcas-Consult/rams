@@ -27,23 +27,79 @@ interface ImportAssetsDialogProps {
  * Excel column mapping - adjust these based on your actual Excel structure
  * The keys are the Excel column headers, values are the asset property names
  */
-const EXCEL_COLUMN_MAPPING: Record<string, keyof CreateAssetInput> = {
-  "Asset Tag": "assetTag",
-  "Asset Name": "assetName",
-  "Name": "assetName",
-  "Category": "category",
-  "Location": "location",
-  "Status": "status",
-  "Assigned To": "assignedTo",
-  "Purchase Date": "purchaseDate",
-  "Purchase Price": "purchasePrice",
-  "Price": "purchasePrice",
-  "Serial Number": "serialNumber",
-  "Serial": "serialNumber",
-  "Manufacturer": "manufacturer",
-  "Model": "model",
-  "Description": "description",
+type MappableField = keyof CreateAssetInput;
+
+const HEADER_MAPPINGS: Record<MappableField, string[]> = {
+  plnt: ["Plnt"],
+  equipment: ["Equipment", "Equip No.", "Equipment No."],
+  material: ["Material", "Material Num."],
+  materialDescription: ["Material Description", "Material Desc."],
+  techIdentNo: ["TechIdentNo.", "Technical Num.", "Tech Ident No."],
+  description: ["Description", "Description (RAMS)", "Description (Last Inventory)"],
+  assetName: [
+    "Asset Name",
+    "Description",
+    "Material Description",
+    "Material Desc.",
+    "Technical Desc.",
+  ],
+  assetTag: ["Asset Tag", "Equip No.", "Equipment"],
+  category: [
+    "Category",
+    "Object Type",
+    "Material",
+    "Material Desc.",
+    "Mission",
+    "AGrp",
+  ],
+  location: [
+    "Location",
+    "Functional Loc. Desc.",
+    "Loc. in UMOJA",
+    "Functional Loc.",
+    "Description of functional location",
+  ],
+  status: [
+    "Status",
+    "System status",
+    "SysStatus",
+    "User status",
+    "UserStatus",
+    "RAMS User status",
+  ],
+  manufSerialNumber: ["ManufSerialNumber", "Manuf. s/n"],
+  serialNumber: ["Serial Number", "Manuf. s/n", "ManufSerialNumber", "Technical Num.", "TechIdentNo."],
+  sysStatus: ["SysStatus", "System status"],
+  userStatusRaw: ["UserStatus", "User status", "RAMS User status"],
+  sLoc: ["SLoc", "Storage Location"],
+  pfUserAc: ["PF User Ac", "PF User Acc."],
+  pfUserAccountableDescription: ["PF User Accountable Description", "PF User Ac. Desc."],
+  pfPropMg: ["PF Prop.Mg"],
+  pfPropMgmFocalPointDescription: ["PF Prop.Mgm Focal Point Description"],
+  functionalLoc: ["Functional Loc."],
+  functionalLocDescription: ["Description of functional location", "Functional Loc. Desc."],
+  aGrp: ["AGrp"],
+  busA: ["BusA", "Business Area"],
+  objectType: ["ObjectType", "Object Type"],
+  costCtr: ["Cost Ctr", "Cost Centre"],
+  assignedTo: [
+    "Assigned To",
+    "PF User Ac. Desc.",
+    "PF User Ac",
+    "PF User Accountable Description",
+    "PF Prop.Mg",
+    "PF Prop.Mgm Focal Point Description",
+  ],
+  purchaseDate: ["Purchase Date", "Last PV date"],
+  purchasePrice: ["Purchase Price", "Acq. Value (USD)", "AcquistnValue"],
+  acquistnValue: ["AcquistnValue", "Acq. Value (USD)"],
+  manufacturer: ["Manufacturer"],
+  model: ["Model"],
+  comment: ["Comment", "Asset Notes"],
 };
+
+const normalize = (value?: string | number | null) =>
+  typeof value === "string" ? value.trim() : value;
 
 export function ImportAssetsDialog({
   open,
@@ -96,33 +152,92 @@ export function ImportAssetsDialog({
       const mappedAssets: CreateAssetInput[] = dataRows
         .filter((row) => row && row.some((cell: any) => cell !== null && cell !== undefined && cell !== ""))
         .map((row) => {
-          const asset: any = {};
+          const asset: CreateAssetInput = {};
 
-          headers.forEach((header, index) => {
-            const normalizedHeader = header?.trim();
-            const mappedKey = EXCEL_COLUMN_MAPPING[normalizedHeader];
+          headers.forEach((rawHeader, index) => {
+            const headerLabel = String(rawHeader ?? "").trim();
+            const cellValue = row[index];
 
-            if (mappedKey && row[index] !== undefined && row[index] !== null && row[index] !== "") {
-              const value = row[index];
+            const targetField = (Object.entries(HEADER_MAPPINGS) as [MappableField, string[]][]).find(
+              ([, aliases]) =>
+                headerLabel &&
+                aliases.some(
+                  (alias) => alias.toLowerCase() === headerLabel.toLowerCase()
+                )
+            )?.[0];
 
-              // Handle different data types
-              if (mappedKey === "purchasePrice") {
-                asset[mappedKey] = typeof value === "number" ? value : parseFloat(value) || undefined;
-              } else if (mappedKey === "purchaseDate") {
-                // Handle Excel date serial numbers or date strings
-                if (typeof value === "number") {
-                  // Excel date serial number
-                  const excelEpoch = new Date(1899, 11, 30);
-                  const date = new Date(excelEpoch.getTime() + value * 86400000);
-                  asset[mappedKey] = date.toISOString().split("T")[0];
-                } else {
-                  asset[mappedKey] = value;
-                }
+            if (!targetField || cellValue === undefined || cellValue === null || cellValue === "") {
+              return;
+            }
+
+            if (targetField === "purchasePrice") {
+              asset.purchasePrice =
+                typeof cellValue === "number"
+                  ? cellValue
+                  : parseFloat(String(cellValue).replace(/[^0-9.-]+/g, "")) || undefined;
+            } else if (targetField === "acquistnValue") {
+              const parsedNumber =
+                typeof cellValue === "number"
+                  ? cellValue
+                  : parseFloat(String(cellValue).replace(/[^0-9.-]+/g, ""));
+              asset.acquistnValue = Number.isFinite(parsedNumber) ? parsedNumber : undefined;
+            } else if (targetField === "purchaseDate") {
+              if (typeof cellValue === "number") {
+                const excelEpoch = new Date(1899, 11, 30);
+                const date = new Date(excelEpoch.getTime() + cellValue * 86400000);
+                asset.purchaseDate = date.toISOString().split("T")[0];
               } else {
-                asset[mappedKey] = String(value).trim();
+                asset.purchaseDate = String(cellValue);
+              }
+            } else {
+              const normalizedValue = normalize(cellValue);
+              if (typeof normalizedValue === "string") {
+                asset[targetField] = normalizedValue;
+              } else if (normalizedValue !== null && normalizedValue !== undefined) {
+                asset[targetField] = String(normalizedValue);
               }
             }
           });
+
+          if (!asset.equipment && asset.assetTag) {
+            asset.equipment = asset.assetTag;
+          }
+          if (!asset.assetTag && asset.equipment) {
+            asset.assetTag = asset.equipment;
+          }
+          if (!asset.assetName) {
+            asset.assetName =
+              asset.materialDescription ||
+              asset.description ||
+              asset.material ||
+              asset.equipment ||
+              `Imported Asset ${Date.now()}`;
+          }
+          if (!asset.category) {
+            asset.category = asset.objectType || asset.material || undefined;
+          }
+          if (!asset.location) {
+            asset.location =
+              asset.functionalLocDescription ||
+              asset.functionalLoc ||
+              asset.plnt ||
+              undefined;
+          }
+          if (!asset.status) {
+            asset.status = (asset.sysStatus as any) || undefined;
+          }
+          if (!asset.serialNumber) {
+            asset.serialNumber = asset.manufSerialNumber || asset.techIdentNo || undefined;
+          }
+          if (!asset.purchasePrice && typeof asset.acquistnValue === "number") {
+            asset.purchasePrice = asset.acquistnValue;
+          }
+          if (!asset.equipment) {
+            asset.equipment = crypto.randomUUID();
+          }
+          if (!asset.assetTag) {
+            asset.assetTag = asset.equipment;
+          }
 
           // Ensure assetName is required
           if (!asset.assetName) {
@@ -209,19 +324,19 @@ export function ImportAssetsDialog({
                 <table className="w-full text-sm">
                   <thead className="bg-muted sticky top-0">
                     <tr>
-                      <th className="px-2 py-1 text-left">Asset Name</th>
-                      <th className="px-2 py-1 text-left">Tag</th>
-                      <th className="px-2 py-1 text-left">Category</th>
-                      <th className="px-2 py-1 text-left">Status</th>
+                      <th className="px-2 py-1 text-left">Equipment</th>
+                      <th className="px-2 py-1 text-left">Material Description</th>
+                      <th className="px-2 py-1 text-left">Functional Loc.</th>
+                      <th className="px-2 py-1 text-left">SysStatus</th>
                     </tr>
                   </thead>
                   <tbody>
                     {preview.slice(0, 10).map((asset, index) => (
                       <tr key={index} className="border-t">
-                        <td className="px-2 py-1">{asset.assetName}</td>
-                        <td className="px-2 py-1">{asset.assetTag || "N/A"}</td>
-                        <td className="px-2 py-1">{asset.category || "N/A"}</td>
-                        <td className="px-2 py-1">{asset.status || "N/A"}</td>
+                        <td className="px-2 py-1">{asset.equipment || "N/A"}</td>
+                        <td className="px-2 py-1">{asset.materialDescription || asset.description || "N/A"}</td>
+                        <td className="px-2 py-1">{asset.functionalLocDescription || asset.functionalLoc || "N/A"}</td>
+                        <td className="px-2 py-1">{asset.sysStatus || "N/A"}</td>
                       </tr>
                     ))}
                     {preview.length > 10 && (
@@ -238,13 +353,19 @@ export function ImportAssetsDialog({
           )}
 
           <div className="text-sm text-muted-foreground space-y-1">
-            <p className="font-medium">Expected Excel columns:</p>
+            <p className="font-medium">Expected Excel columns (exact headers):</p>
             <ul className="list-disc list-inside space-y-1">
-              <li>Asset Name (required) or Name</li>
-              <li>Asset Tag (optional)</li>
-              <li>Category, Location, Status (optional)</li>
-              <li>Purchase Date, Purchase Price (optional)</li>
-              <li>Serial Number, Manufacturer, Model (optional)</li>
+              <li>Plnt</li>
+              <li>Equipment (unique identifier)</li>
+              <li>Material, Material Description</li>
+              <li>TechIdentNo., Description</li>
+              <li>ManufSerialNumber</li>
+              <li>SysStatus, UserStatus</li>
+              <li>SLoc, PF User Ac, PF User Accountable Description</li>
+              <li>PF Prop.Mg, PF Prop.Mgm Focal Point Description</li>
+              <li>Functional Loc., Description of functional location</li>
+              <li>AGrp, BusA, ObjectType, Cost Ctr</li>
+              <li>AcquistnValue, Comment</li>
             </ul>
           </div>
         </div>

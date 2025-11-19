@@ -16,11 +16,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-import { assetStatusEnum, createAssetSchema, AssetResponse } from "../schemas/asset-schemas";
+import { createAssetSchema, AssetResponse } from "../schemas/asset-schemas";
 import { useCreateAsset, useUpdateAsset } from "../hooks/useAssetMutations";
 
 type AssetFormValues = z.infer<typeof createAssetSchema>;
@@ -29,8 +28,6 @@ type AssetFormProps = {
   mode: "create" | "edit";
   initialData?: AssetResponse | null;
 };
-
-const STATUS_OPTIONS = assetStatusEnum.options;
 
 const formatDateInput = (value?: string | Date | null) => {
   if (!value) return "";
@@ -57,7 +54,7 @@ export function AssetForm({ mode, initialData }: AssetFormProps) {
       assetName: initialData?.assetName ?? "",
       category: initialData?.category ?? "",
       location: initialData?.location ?? "",
-      status: initialData?.status ?? "Active",
+      status: initialData?.status ?? "",
       assignedTo: initialData?.assignedTo ?? "",
       purchaseDate: formatDateInput(initialData?.purchaseDate),
       purchasePrice: initialData?.purchasePrice,
@@ -76,6 +73,7 @@ export function AssetForm({ mode, initialData }: AssetFormProps) {
       assetTag: values.assetTag?.trim() || undefined,
       category: values.category?.trim() || undefined,
       location: values.location?.trim() || undefined,
+      status: values.status?.trim() || undefined,
       assignedTo: values.assignedTo?.trim() || undefined,
       purchaseDate: values.purchaseDate || undefined,
       purchasePrice:
@@ -169,20 +167,9 @@ export function AssetForm({ mode, initialData }: AssetFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {STATUS_OPTIONS.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <Input placeholder="Status from Excel (e.g. EQID)" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
