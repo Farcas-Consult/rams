@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { GenericTable } from "@/components/tables/generic-table";
 import { useDecommissionedAssetColumns } from "../assets/components/decommissioned-table-columns";
 import { useAssets } from "../assets/hooks/useAssets";
@@ -27,16 +27,22 @@ export default function DecommissioningPage() {
   const { data, isLoading, error } = useAssets(query);
   const columns = useDecommissionedAssetColumns();
 
-  const handlePaginationChange = (newPagination: {
-    pageIndex: number;
-    pageSize: number;
-  }) => {
-    setPagination(newPagination);
-    setQuery((prev) => ({
-      ...prev,
-      page: newPagination.pageIndex + 1,
-      pageSize: newPagination.pageSize,
-    }));
+  const handlePaginationChange: Dispatch<
+    SetStateAction<{
+      pageIndex: number;
+      pageSize: number;
+    }>
+  > = (updater) => {
+    setPagination((prev) => {
+      const next =
+        typeof updater === "function" ? updater(prev) : updater;
+      setQuery((prevQuery) => ({
+        ...prevQuery,
+        page: next.pageIndex + 1,
+        pageSize: next.pageSize,
+      }));
+      return next;
+    });
   };
 
   return (

@@ -35,12 +35,12 @@ export default async function page() {
                 </a>
               ) : (
                 <>
-                  <Link href="/login">
+                  <Link href="/auth/login">
                     <Button variant="outline" size="sm">
                       Log in
                     </Button>
                   </Link>
-                  <Link href="/forgot-password">
+                  <Link href="/auth/forgot-password">
                     <Button size="sm" variant="ghost">
                       Forgot password
                     </Button>
@@ -63,12 +63,12 @@ export default async function page() {
             Comprehensive asset management solution for tracking, managing, and optimizing your organization's resources.
           </p>
           <div className="flex gap-4 mt-4">
-            <Link href="/login">
+            <Link href="/auth/login">
               <Button size="lg" className="gap-2">
                 Log in <IconChevronRight size={18} />
               </Button>
             </Link>
-            <Link href="/forgot-password">
+            <Link href="/auth/forgot-password">
               <Button size="lg" variant="outline">
                 Forgot password
               </Button>

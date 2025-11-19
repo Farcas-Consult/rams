@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { IconLoader } from "@tabler/icons-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { IconLoader } from "@tabler/icons-react";
+
+import { useForgotPasswordMutation } from "@/app/auth/hooks/use-auth-mutations";
 
 export function ForgotPasswordForm({
   className,
@@ -23,50 +25,27 @@ export function ForgotPasswordForm({
 }: React.ComponentProps<"div">) {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
-  const [message, setMessage] = useState("");
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  const mutation = useForgotPasswordMutation();
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setLoading(true);
-    setStatus("idle");
-    setMessage("");
-
-    try {
-      const response = await fetch("/api/auth/forget-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          redirectTo: `${window.location.origin}/reset-password`,
-        }),
-      });
-
-      const body = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(body?.message || "Unable to send reset instructions");
-      }
-
-      setStatus("success");
-      setMessage(
-        body?.message ||
-          "If this email exists in our system, check your inbox for a reset link."
-      );
-    } catch (error) {
-      setStatus("error");
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "We could not process your request. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
+    mutation.mutate({ email });
   }
+
+  const hasStatus = mutation.isSuccess || mutation.isError;
+  const message = (() => {
+    if (mutation.isSuccess) {
+      return (
+        mutation.data ||
+        "If this email exists in our system, check your inbox for a reset link."
+      );
+    }
+    if (mutation.error instanceof Error) {
+      return mutation.error.message;
+    }
+    return "";
+  })();
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -78,12 +57,15 @@ export function ForgotPasswordForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {status !== "idle" && (
+          {hasStatus && (
             <Alert
-              variant={status === "error" ? "destructive" : "default"}
+              variant={mutation.isError ? "destructive" : "default"}
               className="mb-4"
             >
-              <AlertDescription>{message}</AlertDescription>
+              <AlertDescription>
+                {message ||
+                  "If this email exists in our system, check your inbox for a reset link."}
+              </AlertDescription>
             </Alert>
           )}
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -95,13 +77,20 @@ export function ForgotPasswordForm({
                 inputMode="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(event) => {
+                  if (mutation.isError) mutation.reset();
+                  setEmail(event.target.value);
+                }}
                 required
               />
             </div>
             <div className="flex flex-col gap-3">
-              <Button disabled={loading} type="submit" className="w-full">
-                {loading ? (
+              <Button
+                disabled={mutation.isPending}
+                type="submit"
+                className="w-full"
+              >
+                {mutation.isPending ? (
                   <IconLoader className="animate-spin" stroke={2} />
                 ) : (
                   "Send reset link"
@@ -111,7 +100,7 @@ export function ForgotPasswordForm({
                 type="button"
                 variant="ghost"
                 className="w-full"
-                onClick={() => router.push("/login")}
+                onClick={() => router.push("/auth/login")}
               >
                 Back to login
               </Button>

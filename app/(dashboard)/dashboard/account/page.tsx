@@ -24,7 +24,7 @@ export default function Page() {
   async function getUser() {
     const { data: session } = await authClient.getSession();
     // // if (!session?.user) {
-    // //   return router.push("/login");
+    // //   return router.push("/auth/login");
     // // }
     // console.log(session);
     return session;
@@ -93,7 +93,10 @@ export default function Page() {
           </div>
           <div className="mt-4 text-center text-sm">
             Forgot your password?{" "}
-            <a href="/login" className="underline underline-offset-4">
+            <a
+              href="/auth/forgot-password"
+              className="underline underline-offset-4"
+            >
               Reset password
             </a>
           </div>

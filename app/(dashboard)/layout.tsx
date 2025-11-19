@@ -17,7 +17,7 @@ export default async function layout({
   });
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/auth/login");
   }
 
   const [dbUser] = await db
@@ -27,7 +27,7 @@ export default async function layout({
     .limit(1);
 
   if (!dbUser) {
-    redirect("/login");
+    redirect("/auth/login");
   }
 
   return (
