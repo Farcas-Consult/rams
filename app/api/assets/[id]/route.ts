@@ -9,15 +9,16 @@ import {
 import { serializeAsset } from "../utils";
 
 type RouteParams = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const record = await db.query.asset.findFirst({
-      where: (assets, { eq }) => eq(assets.id, params.id),
+      where: (assets, { eq }) => eq(assets.id, id),
     });
 
     if (!record) {
@@ -33,8 +34,9 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const payload = await request.json();
-    const parsed = updateAssetSchema.safeParse({ ...payload, id: params.id });
+    const parsed = updateAssetSchema.safeParse({ ...payload, id });
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -43,9 +45,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    let existing = (await db.select().from(asset).where(eq(asset.id, params.id)).limit(1))[0] ?? null;
+    let existing = (await db.select().from(asset).where(eq(asset.id, id)).limit(1))[0] ?? null;
 
-    let targetId = params.id;
+    let targetId = id;
 
     if (!existing && parsed.data.equipment) {
       const fallback = (await db.select().from(asset).where(eq(asset.equipment, parsed.data.equipment!)).limit(1))[0] ?? null;
@@ -158,7 +160,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   try {
-    await db.delete(asset).where(eq(asset.id, params.id));
+    const { id } = await params;
+    await db.delete(asset).where(eq(asset.id, id));
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to delete asset", error);

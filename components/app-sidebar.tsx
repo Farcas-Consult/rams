@@ -54,7 +54,7 @@ const navItems: NavItem[] = [
   },
   {
     title: "Report",
-    url: "/dashboard/report",
+    url: "/dashboard/reports",
     icon: IconReport,
     requiredPermission: "reports:read",
   },
