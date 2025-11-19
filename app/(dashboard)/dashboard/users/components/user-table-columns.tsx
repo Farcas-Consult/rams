@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -16,7 +16,6 @@ import {
 import { TransformedUser } from "../types/user-types";
 import Link from "next/link";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 import { DeleteUserDialog } from "./delete-user-dialog";
 import { useDeleteUser } from "../hooks/useUserMutations";
 
@@ -59,6 +58,34 @@ export const useUserColumns = (): ColumnDef<TransformedUser>[] => {
       enableHiding: false,
     },
     {
+      accessorKey: "username",
+      header: "Username",
+      cell: ({ row }) => {
+        return (
+          <div className="text-sm font-mono text-muted-foreground">
+            {row.original.username}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.original.status || "inactive";
+        const statusColors: Record<string, string> = {
+          active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+          inactive: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
+          suspended: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+        };
+        return (
+          <Badge className={statusColors[status] || "bg-gray-100 text-gray-800"}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </Badge>
+        );
+      },
+    },
+    {
       accessorKey: "email",
       header: "Email",
       cell: ({ row }) => {
@@ -66,18 +93,6 @@ export const useUserColumns = (): ColumnDef<TransformedUser>[] => {
           <div className="text-sm">
             {row.original.email}
           </div>
-        );
-      },
-    },
-    {
-      accessorKey: "emailVerified",
-      header: "Email Verified",
-      cell: ({ row }) => {
-        const isVerified = row.original.emailVerified;
-        return (
-          <Badge variant={isVerified ? "default" : "secondary"}>
-            {isVerified ? "Verified" : "Not Verified"}
-          </Badge>
         );
       },
     },

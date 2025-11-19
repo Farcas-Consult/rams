@@ -16,8 +16,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { PasswordInput } from "@/components/ui/password-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -37,6 +43,12 @@ interface UserFormProps {
   userId?: string;
 }
 
+const USER_STATUS_OPTIONS = [
+  { label: "Active", value: "active" },
+  { label: "Inactive", value: "inactive" },
+  { label: "Suspended", value: "suspended" },
+];
+
 export function UserForm({ mode, initialData, userId }: UserFormProps) {
   const router = useRouter();
   const { mutate: createUser, isPending: isCreating } = useCreateUser();
@@ -53,15 +65,17 @@ export function UserForm({ mode, initialData, userId }: UserFormProps) {
         ? {
             id: userId || initialData.id,
             name: initialData.name || "",
+            username: initialData.username || "",
             email: initialData.email || "",
             password: "",
-            emailVerified: initialData.emailVerified ?? false,
+            status: initialData.status || "active",
           }
         : {
             name: "",
+            username: "",
             email: "",
             password: "",
-            emailVerified: false,
+            status: "active",
           },
   });
 
@@ -160,6 +174,27 @@ export function UserForm({ mode, initialData, userId }: UserFormProps) {
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="john.doe"
+                      autoComplete="username"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Used for username-based sign in. Letters, numbers, dots, underscores and dashes only.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {mode === "create" ? (
               <FormField
                 control={form.control}
@@ -206,21 +241,31 @@ export function UserForm({ mode, initialData, userId }: UserFormProps) {
 
             <FormField
               control={form.control}
-              name="emailVerified"
+              name="status"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {USER_STATUS_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Email Verified</FormLabel>
-                    <FormDescription>
-                      Check this box if the user's email has been verified.
-                    </FormDescription>
-                  </div>
+                  <FormDescription>
+                    Choose the account status for this user.
+                  </FormDescription>
+                  <FormMessage />
                 </FormItem>
               )}
             />

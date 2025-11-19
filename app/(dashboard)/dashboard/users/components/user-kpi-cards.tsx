@@ -1,6 +1,14 @@
 "use client";
 
-import { IconTrendingUp, IconTrendingDown, IconUsers, IconMail, IconMailCheck, IconUserPlus } from "@tabler/icons-react";
+import {
+  IconTrendingUp,
+  IconTrendingDown,
+  IconUsers,
+  IconUserCheck,
+  IconUserX,
+  IconShieldOff,
+  IconUserPlus,
+} from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -34,8 +42,9 @@ export function UserKPICards() {
 
   const {
     totalUsers = 0,
-    verifiedUsers = 0,
-    unverifiedUsers = 0,
+    activeUsers = 0,
+    inactiveUsers = 0,
+    suspendedUsers = 0,
     newThisMonth = 0,
     growthRate = 0,
   } = stats || {};
@@ -81,23 +90,23 @@ export function UserKPICards() {
 
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Verified Users</CardDescription>
+          <CardDescription>Active Users</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {verifiedUsers.toLocaleString()}
+            {activeUsers.toLocaleString()}
           </CardTitle>
           <CardAction>
             <Badge variant="outline" className="text-green-600 dark:text-green-400">
-              <IconMailCheck className="size-3" />
-              {totalUsers > 0 ? ((verifiedUsers / totalUsers) * 100).toFixed(1) : 0}%
+              <IconUserCheck className="size-3" />
+              {totalUsers > 0 ? ((activeUsers / totalUsers) * 100).toFixed(1) : 0}%
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Email verified accounts <IconMailCheck className="size-4" />
+            Users with active access <IconUserCheck className="size-4" />
           </div>
           <div className="text-muted-foreground">
-            {unverifiedUsers} pending verification
+            {totalUsers - activeUsers} not active
           </div>
         </CardFooter>
       </Card>
@@ -127,23 +136,46 @@ export function UserKPICards() {
 
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Unverified Users</CardDescription>
+          <CardDescription>Inactive Users</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {unverifiedUsers}
+            {inactiveUsers}
           </CardTitle>
           <CardAction>
-            <Badge variant="outline" className="text-yellow-600 dark:text-yellow-400">
-              <IconMail className="size-3" />
-              Pending
+            <Badge variant="outline" className="text-gray-600 dark:text-gray-400">
+              <IconUserX className="size-3" />
+              Inactive
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Awaiting verification <IconMail className="size-4" />
+            Accounts not in use <IconUserX className="size-4" />
           </div>
           <div className="text-muted-foreground">
-            Require email verification
+            Reactivate when needed
+          </div>
+        </CardFooter>
+      </Card>
+
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Suspended Users</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            {suspendedUsers}
+          </CardTitle>
+          <CardAction>
+            <Badge variant="outline" className="text-red-600 dark:text-red-400">
+              <IconShieldOff className="size-3" />
+              Suspended
+            </Badge>
+          </CardAction>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            Access revoked <IconShieldOff className="size-4" />
+          </div>
+          <div className="text-muted-foreground">
+            Review and restore when ready
           </div>
         </CardFooter>
       </Card>

@@ -3,11 +3,18 @@ import { z } from "zod";
 /**
  * Schema for creating a new user
  */
+const userStatusEnum = z.enum(["active", "inactive", "suspended"]);
+
 export const createUserSchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name is too long"),
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(30, "Username must be at most 30 characters")
+    .regex(/^[a-zA-Z0-9._-]+$/, "Username can only contain letters, numbers, dots, underscores, and dashes"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  emailVerified: z.boolean().default(false),
+  status: userStatusEnum.default("active"),
 });
 
 /**
@@ -16,9 +23,15 @@ export const createUserSchema = z.object({
 export const updateUserSchema = z.object({
   id: z.string().min(1, "User ID is required"),
   name: z.string().min(1, "Name is required").max(255, "Name is too long").optional(),
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(30, "Username must be at most 30 characters")
+    .regex(/^[a-zA-Z0-9._-]+$/)
+    .optional(),
   email: z.string().email("Invalid email address").optional(),
   password: z.string().min(8, "Password must be at least 8 characters").optional(),
-  emailVerified: z.boolean().optional(),
+  status: userStatusEnum.optional(),
 });
 
 /**
@@ -39,8 +52,9 @@ export const userQuerySchema = z.object({
 export const userResponseSchema = z.object({
   id: z.string(),
   name: z.string(),
+  username: z.string(),
   email: z.string(),
-  emailVerified: z.boolean(),
+  status: userStatusEnum,
   image: z.string().nullable(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
@@ -63,4 +77,5 @@ export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type UserQuery = z.infer<typeof userQuerySchema>;
 export type UserResponse = z.infer<typeof userResponseSchema>;
 export type PaginatedUserResponse = z.infer<typeof paginatedUserResponseSchema>;
+export type UserStatus = z.infer<typeof userStatusEnum>;
 
