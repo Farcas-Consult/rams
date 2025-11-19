@@ -43,9 +43,25 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const existing = await db.query.asset.findFirst({
-      where: (assets, { eq }) => eq(assets.id, params.id),
-    });
+    let existing = (await db.select().from(asset).where(eq(asset.id, params.id)).limit(1))[0] ?? null;
+
+    let targetId = params.id;
+
+    if (!existing && parsed.data.equipment) {
+      const fallback = (await db.select().from(asset).where(eq(asset.equipment, parsed.data.equipment!)).limit(1))[0] ?? null;
+      if (fallback) {
+        existing = fallback;
+        targetId = fallback.id;
+      }
+    }
+
+    if (!existing && parsed.data.assetTag) {
+      const fallback = (await db.select().from(asset).where(eq(asset.assetTag, parsed.data.assetTag!)).limit(1))[0] ?? null;
+      if (fallback) {
+        existing = fallback;
+        targetId = fallback.id;
+      }
+    }
 
     if (!existing) {
       return NextResponse.json({ error: "Asset not found" }, { status: 404 });
@@ -126,7 +142,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     await db
       .update(asset)
       .set(updatedValues)
-      .where(eq(asset.id, params.id));
+      .where(eq(asset.id, targetId));
 
     return NextResponse.json(
       serializeAsset({

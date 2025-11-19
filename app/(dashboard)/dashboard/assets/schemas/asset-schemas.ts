@@ -50,7 +50,7 @@ export const createAssetSchema = z.object({
  * Schema for updating an existing asset
  */
 export const updateAssetSchema = z.object({
-  id: z.string().min(1, "Asset ID is required"),
+  id: z.string().min(1, "Asset ID is required").optional(),
   plnt: z.string().optional(),
   equipment: z.string().optional(),
   material: z.string().optional(),

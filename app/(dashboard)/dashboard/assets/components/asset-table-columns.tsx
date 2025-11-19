@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Eye, Trash2, Compass } from "lucide-react";
+import { MoreHorizontal, Eye, Trash2, Compass, PowerOff } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,15 +16,23 @@ import { TransformedAsset } from "../types/asset-types";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { DeleteAssetDialog } from "./delete-asset-dialog";
+import { DecommissionAssetDialog } from "./decommission-asset-dialog";
 import { AssetDetailDrawer } from "./asset-detail-drawer";
 
 export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [assetToDelete, setAssetToDelete] = useState<TransformedAsset | null>(null);
+  const [decommissionDialogOpen, setDecommissionDialogOpen] = useState(false);
+  const [assetToDecommission, setAssetToDecommission] = useState<TransformedAsset | null>(null);
 
   const handleDeleteClick = (asset: TransformedAsset) => {
     setAssetToDelete(asset);
     setDeleteDialogOpen(true);
+  };
+
+  const handleDecommissionClick = (asset: TransformedAsset) => {
+    setAssetToDecommission(asset);
+    setDecommissionDialogOpen(true);
   };
 
   const summaryColumns: {
@@ -132,6 +140,18 @@ export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
                 </DropdownMenuItem>
                 {!isDiscovered ? (
                   <>
+                    {asset.status !== "Decommissioned" && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="cursor-pointer text-red-600"
+                          onClick={() => handleDecommissionClick(asset)}
+                        >
+                          <PowerOff className="mr-2 h-4 w-4" />
+                          Decommission
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="text-red-600 cursor-pointer"
@@ -161,6 +181,12 @@ export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
               onSuccess={() => {
                 setAssetToDelete(null);
               }}
+            />
+            <DecommissionAssetDialog
+              open={decommissionDialogOpen}
+              onOpenChange={setDecommissionDialogOpen}
+              asset={assetToDecommission}
+              onSuccess={() => setAssetToDecommission(null)}
             />
           </>
         );

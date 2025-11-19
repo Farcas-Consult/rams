@@ -92,6 +92,7 @@ export const decommissionAsset = async (id: string): Promise<AssetResponse> => {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      id,
       status: "Decommissioned",
     }),
   });
@@ -103,6 +104,7 @@ export const recommissionAsset = async (id: string): Promise<AssetResponse> => {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      id,
       status: "Active",
     }),
   });
