@@ -32,7 +32,17 @@
    cp .env.example .env
    ```
 
-   Fill in the necessary values in the `.env` file.
+   Minimum variables required:
+
+   ```
+   DATABASE_URL=postgres://...
+   BETTER_AUTH_SECRET=your-generated-secret
+   BETTER_AUTH_URL=http://localhost:3000
+   RESEND_API_KEY=your-resend-key
+   RESEND_FROM_EMAIL="RAMS <no-reply@yourdomain.com>"
+   ```
+
+   `RESEND_FROM_EMAIL` must be a verified sender/domain inside your [Resend](https://resend.com) account. When either the API key or sender address is missing, the app will log password reset links to the console for local development.
 
 4. Set up the database (applies pending schema to your database):
 
