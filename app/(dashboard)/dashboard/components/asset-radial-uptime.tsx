@@ -23,11 +23,11 @@ const chartData = [{ month: "April", active: 920, downtime: 180 }];
 const chartConfig = {
   active: {
     label: "Active",
-    color: "hsl(var(--chart-1))",
+    color: "var(--chart-1)",
   },
   downtime: {
     label: "Downtime",
-    color: "hsl(var(--chart-2))",
+    color: "var(--chart-2)",
   },
 } satisfies ChartConfig;
 

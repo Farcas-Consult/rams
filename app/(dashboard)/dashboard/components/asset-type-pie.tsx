@@ -13,11 +13,11 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 const assetTypeData = [
-  { type: "IT Equipment", value: 420, fill: "hsl(var(--chart-1))" },
-  { type: "Vehicles", value: 180, fill: "hsl(var(--chart-2))" },
-  { type: "Heavy Machinery", value: 135, fill: "hsl(var(--chart-3))" },
-  { type: "Medical Devices", value: 98, fill: "hsl(var(--chart-4))" },
-  { type: "Facilities", value: 74, fill: "hsl(var(--chart-5))" },
+  { type: "IT Equipment", value: 420, fill: "var(--chart-1)" },
+  { type: "Vehicles", value: 180, fill: "var(--chart-2)" },
+  { type: "Heavy Machinery", value: 135, fill: "var(--chart-3)" },
+  { type: "Medical Devices", value: 98, fill: "var(--chart-4)" },
+  { type: "Facilities", value: 74, fill: "var(--chart-5)" },
 ];
 
 export function AssetTypePie() {
