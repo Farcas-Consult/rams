@@ -2,29 +2,16 @@
 
 import * as React from "react";
 import {
-  IconCamera,
-  IconChartBar,
-  IconCopy,
   IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
-  IconFolder,
-  IconHelp,
-  IconHome,
   IconInnerShadowTop,
-  IconListDetails,
   IconReport,
-  IconSearch,
-  IconSettings,
-  IconUserCircle,
   IconUsers,
+  IconPackage,
+  IconRss,
+  IconArchive,
 } from "@tabler/icons-react";
 
-import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
-import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
@@ -45,112 +32,30 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Account",
-      url: "/dashboard/account",
-      icon: IconUserCircle,
+      title: "Live Feeds for Assets",
+      url: "/dashboard/live-feeds",
+      icon: IconRss,
     },
     {
-      title: "Setting",
-      url: "/dashboard/setting",
-      icon: IconSettings,
-    },
-    // {
-    //   title: "Lifecycle",
-    //   url: "#",
-    //   icon: IconListDetails,
-    // },
-    // {
-    //   title: "Analytics",
-    //   url: "#",
-    //   icon: IconChartBar,
-    // },
-    // {
-    //   title: "Projects",
-    //   url: "#",
-    //   icon: IconFolder,
-    // },
-    // {
-    //   title: "Team",
-    //   url: "#",
-    //   icon: IconUsers,
-    // },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
+      title: "Decommissioning",
+      url: "/dashboard/decommissioning",
+      icon: IconArchive,
     },
     {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
+      title: "Report",
+      url: "/dashboard/report",
+      icon: IconReport,
     },
     {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Home",
-      url: "/",
-      icon: IconHome,
+      title: "Users",
+      url: "/dashboard/users",
+      icon: IconUsers,
     },
     {
-      title: "Clone Repository",
-      url: "https://github.com/Achour/nextjs-better-auth",
-      icon: IconCopy,
+      title: "Assets",
+      url: "/dashboard/assets",
+      icon: IconPackage,
     },
-  ],
-  documents: [
-    // {
-    //   name: "Data Library",
-    //   url: "#",
-    //   icon: IconDatabase,
-    // },
-    // {
-    //   name: "Reports",
-    //   url: "#",
-    //   icon: IconReport,
-    // },
-    // {
-    //   name: "Word Assistant",
-    //   url: "#",
-    //   icon: IconFileWord,
-    // },
   ],
 };
 
@@ -159,9 +64,10 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 }
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
-  if (!user) {
-    throw new Error("AppSidebar requires a user but received undefined.");
-  }
+  // TODO: Re-enable when Better Auth is configured
+  // if (!user) {
+  //   throw new Error("AppSidebar requires a user but received undefined.");
+  // }
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -181,8 +87,6 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        {/* <NavDocuments items={data.documents} /> */}
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

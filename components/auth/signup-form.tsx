@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 
 import { useRouter } from "next/navigation";
@@ -109,20 +110,11 @@ export function SignupForm({
                 />
               </div>
               <div className="grid gap-3">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
-                </div>
-                <Input
+                <Label htmlFor="password">Password</Label>
+                <PasswordInput
                   onChange={(e) => setPassword(e.target.value)}
                   value={password}
                   id="password"
-                  type="password"
                   required
                 />
               </div>

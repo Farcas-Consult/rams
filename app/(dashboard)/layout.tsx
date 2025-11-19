@@ -4,21 +4,30 @@ import { SiteHeader } from "@/components/site-header";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
-import { auth } from "@/lib/auth"; // path to your Better Auth server instance
-import { headers } from "next/headers";
+// import { auth } from "@/lib/auth"; // path to your Better Auth server instance
+// import { headers } from "next/headers";
 
 export default async function layout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth.api.getSession({
-    headers: await headers(), // you need to pass the headers object.
-  });
+  // TODO: Re-enable when Better Auth is configured
+  // const session = await auth.api.getSession({
+  //   headers: await headers(), // you need to pass the headers object.
+  // });
 
-  if (!session?.user) {
-    return;
-  }
+  // if (!session?.user) {
+  //   return;
+  // }
+
+  // Mock user for development - remove when auth is enabled
+  const mockUser = {
+    id: "dev-user-1",
+    name: "Dev User",
+    email: "dev@example.com",
+    image: null,
+  };
 
   return (
     <SidebarProvider
@@ -29,10 +38,7 @@ export default async function layout({
         } as React.CSSProperties
       }
     >
-      <AppSidebar
-        user={{ ...session.user, image: session.user.image ?? null }}
-        variant="inset"
-      />
+      <AppSidebar user={mockUser as any} variant="inset" />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">

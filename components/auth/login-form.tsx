@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 
 import { useRouter } from "next/navigation";
@@ -111,11 +112,10 @@ export function LoginForm({
                     Forgot your password?
                   </a>
                 </div>
-                <Input
+                <PasswordInput
                   onChange={(e) => setPassword(e.target.value)}
                   value={password}
                   id="password"
-                  type="password"
                   required
                 />
               </div>
