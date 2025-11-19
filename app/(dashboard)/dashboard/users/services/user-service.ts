@@ -38,6 +38,7 @@ const generateDummyUsers = (count: number = 10): UserResponse[] => {
       name,
       username,
       email,
+      emailVerified: Math.random() > 0.5,
       status: statuses[i % statuses.length] as "active" | "inactive" | "suspended",
       image: null,
       createdAt,
@@ -77,7 +78,7 @@ export const getUsers = async (
   // Apply email verified filter
   if (emailVerified !== undefined) {
     filteredUsers = filteredUsers.filter(
-      (user) => user.emailVerified === emailVerified
+      (user) => (user.emailVerified ?? false) === emailVerified
     );
   }
 
@@ -155,6 +156,7 @@ export const createUser = async (
     name: rest.name,
     username: rest.username,
     email: rest.email,
+    emailVerified: false,
     status: rest.status ?? "active",
     image: null,
     createdAt: new Date(),

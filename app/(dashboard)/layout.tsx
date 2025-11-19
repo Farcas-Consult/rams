@@ -1,33 +1,34 @@
 import { AppSidebar } from "@/components/app-sidebar";
-
 import { SiteHeader } from "@/components/site-header";
-
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-
-// import { auth } from "@/lib/auth"; // path to your Better Auth server instance
-// import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { db, schema } from "@/db";
+import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 export default async function layout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // TODO: Re-enable when Better Auth is configured
-  // const session = await auth.api.getSession({
-  //   headers: await headers(), // you need to pass the headers object.
-  // });
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  // if (!session?.user) {
-  //   return;
-  // }
+  if (!session?.user) {
+    redirect("/login");
+  }
 
-  // Mock user for development - remove when auth is enabled
-  const mockUser = {
-    id: "dev-user-1",
-    name: "Dev User",
-    email: "dev@example.com",
-    image: null,
-  };
+  const [dbUser] = await db
+    .select()
+    .from(schema.user)
+    .where(eq(schema.user.id, session.user.id))
+    .limit(1);
+
+  if (!dbUser) {
+    redirect("/login");
+  }
 
   return (
     <SidebarProvider
@@ -38,7 +39,7 @@ export default async function layout({
         } as React.CSSProperties
       }
     >
-      <AppSidebar user={mockUser as any} variant="inset" />
+      <AppSidebar user={dbUser} variant="inset" />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">
