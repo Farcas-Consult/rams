@@ -39,11 +39,15 @@ export const serializeAsset = (row: AssetRow): AssetResponse => ({
   costCtr: row.costCtr ?? undefined,
   acquistnValue: row.acquistnValue ? Number(row.acquistnValue) : undefined,
   comment: row.comment ?? undefined,
+  discoveredAt: row.discoveredAt ?? undefined,
+  discoveryNotes: row.discoveryNotes ?? undefined,
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
   origin: row.origin ?? "inventory",
   discoveryStatus: row.discoveryStatus ?? "catalogued",
   isDecommissioned: row.isDecommissioned ?? false,
+  decommissionedAt: row.decommissionedAt ?? undefined,
+  decommissionReason: row.decommissionReason ?? undefined,
 });
 
 const getString = (payload: Record<string, unknown>, key: string) =>

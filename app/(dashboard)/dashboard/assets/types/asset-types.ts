@@ -37,11 +37,15 @@ export type Asset = {
   costCtr?: string;
   acquistnValue?: number;
   comment?: string;
+  discoveredAt?: Date | string;
+  discoveryNotes?: string;
   createdAt: Date | string;
   updatedAt: Date | string;
   origin?: string;
   discoveryStatus?: string;
   isDecommissioned?: boolean;
+  decommissionedAt?: Date | string;
+  decommissionReason?: string;
 };
 
 /**

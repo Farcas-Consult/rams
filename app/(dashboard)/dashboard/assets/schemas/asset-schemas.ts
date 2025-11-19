@@ -40,6 +40,10 @@ export const createAssetSchema = z.object({
   origin: z.string().optional(),
   discoveryStatus: z.string().optional(),
   isDecommissioned: z.boolean().optional(),
+  discoveredAt: z.string().optional(),
+  discoveryNotes: z.string().optional(),
+  decommissionedAt: z.string().optional(),
+  decommissionReason: z.string().optional(),
 });
 
 /**
@@ -83,6 +87,10 @@ export const updateAssetSchema = z.object({
   origin: z.string().optional(),
   discoveryStatus: z.string().optional(),
   isDecommissioned: z.boolean().optional(),
+  discoveredAt: z.string().optional(),
+  discoveryNotes: z.string().optional(),
+  decommissionedAt: z.string().optional(),
+  decommissionReason: z.string().optional(),
 });
 
 /**
@@ -159,6 +167,10 @@ export const assetResponseSchema = z.object({
   origin: z.string().optional(),
   discoveryStatus: z.string().optional(),
   isDecommissioned: z.boolean().optional(),
+  discoveredAt: z.date().or(z.string()).optional(),
+  discoveryNotes: z.string().optional(),
+  decommissionedAt: z.date().or(z.string()).optional(),
+  decommissionReason: z.string().optional(),
 });
 
 /**

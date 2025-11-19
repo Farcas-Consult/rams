@@ -166,12 +166,17 @@ export async function POST(request: NextRequest) {
       comment: parsed.data.comment ?? null,
       origin: parsed.data.origin ?? "inventory",
       discoveryStatus: parsed.data.discoveryStatus ?? "catalogued",
+      discoveredAt: parsed.data.discoveredAt ? new Date(parsed.data.discoveredAt) : null,
+      discoveryNotes: parsed.data.discoveryNotes ?? null,
       isDecommissioned:
         parsed.data.isDecommissioned ?? parsed.data.status === "Decommissioned",
       decommissionedAt:
-        parsed.data.isDecommissioned || parsed.data.status === "Decommissioned"
-          ? now
-          : null,
+        parsed.data.decommissionedAt
+          ? new Date(parsed.data.decommissionedAt)
+          : parsed.data.isDecommissioned || parsed.data.status === "Decommissioned"
+            ? now
+            : null,
+      decommissionReason: parsed.data.decommissionReason ?? null,
       createdAt: now,
       updatedAt: now,
     };

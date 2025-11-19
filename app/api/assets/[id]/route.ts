@@ -51,6 +51,17 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Asset not found" }, { status: 404 });
     }
 
+    const desiredStatus = parsed.data.status ?? existing.status;
+    const explicitDecommission = parsed.data.isDecommissioned;
+    const nextIsDecommissioned =
+      typeof explicitDecommission === "boolean"
+        ? explicitDecommission
+        : desiredStatus === "Decommissioned"
+          ? true
+          : desiredStatus && desiredStatus !== "Decommissioned"
+            ? false
+            : existing.isDecommissioned;
+
     const updatedValues = {
       plnt: parsed.data.plnt ?? existing.plnt,
       equipment: parsed.data.equipment ?? existing.equipment,
@@ -61,7 +72,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       assetName: parsed.data.assetName ?? existing.assetName,
       category: parsed.data.category ?? existing.category,
       location: parsed.data.location ?? existing.location,
-      status: parsed.data.status ?? existing.status,
+      status: desiredStatus,
       assignedTo: parsed.data.assignedTo ?? existing.assignedTo,
       purchaseDate: parsed.data.purchaseDate
         ? new Date(parsed.data.purchaseDate)
@@ -96,18 +107,19 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
           ? parsed.data.acquistnValue
           : existing.acquistnValue,
       comment: parsed.data.comment ?? existing.comment,
-      isDecommissioned:
-        parsed.data.status === "Decommissioned"
-          ? true
-          : parsed.data.status
-            ? false
-            : existing.isDecommissioned,
-      decommissionedAt:
-        parsed.data.status === "Decommissioned"
-          ? new Date()
-          : parsed.data.status
-            ? null
-            : existing.decommissionedAt,
+      origin: parsed.data.origin ?? existing.origin,
+      discoveryStatus: parsed.data.discoveryStatus ?? existing.discoveryStatus,
+      discoveredAt: parsed.data.discoveredAt
+        ? new Date(parsed.data.discoveredAt)
+        : existing.discoveredAt,
+      discoveryNotes: parsed.data.discoveryNotes ?? existing.discoveryNotes,
+      isDecommissioned: nextIsDecommissioned,
+      decommissionedAt: parsed.data.decommissionedAt
+        ? new Date(parsed.data.decommissionedAt)
+        : nextIsDecommissioned
+          ? existing.decommissionedAt ?? new Date()
+          : null,
+      decommissionReason: parsed.data.decommissionReason ?? existing.decommissionReason,
       updatedAt: new Date(),
     };
 

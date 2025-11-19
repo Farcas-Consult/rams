@@ -31,7 +31,9 @@ export async function GET() {
 
     const totalAssets = Number(totals[0]?.total ?? 0);
     const totalValueResult = await db
-      .select({ value: sum(asset.acquistnValue) })
+      .select({
+        value: sql<number>`coalesce(sum(coalesce(${asset.purchasePrice}, ${asset.acquistnValue})), 0)`,
+      })
       .from(asset);
     const totalValue = Number(totalValueResult[0]?.value ?? 0);
 
