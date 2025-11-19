@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -8,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { UserForm } from "./user-form";
-import { getUserById } from "../services/user-service";
-import type { UserResponse } from "../schemas/user-schemas";
+import { useUser } from "../hooks/useUsers";
 
 interface EditUserPageClientProps {
   userId: string;
@@ -17,28 +15,7 @@ interface EditUserPageClientProps {
 
 export function EditUserPageClient({ userId }: EditUserPageClientProps) {
   const router = useRouter();
-  const [user, setUser] = React.useState<UserResponse | null>(null);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await getUserById(userId);
-        if (!userData) {
-          setError("User not found");
-          return;
-        }
-        setUser(userData);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load user");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadUser();
-  }, [userId]);
+  const { data: user, isLoading, error } = useUser(userId);
 
   if (isLoading) {
     return (
@@ -60,6 +37,13 @@ export function EditUserPageClient({ userId }: EditUserPageClientProps) {
   }
 
   if (error || !user) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : error
+          ? String(error)
+          : "User not found";
+
     return (
       <div className="container mx-auto py-6 px-4 lg:px-6">
         <Card className="w-full max-w-2xl mx-auto">
@@ -67,7 +51,7 @@ export function EditUserPageClient({ userId }: EditUserPageClientProps) {
             <h1 className="text-2xl font-bold">Error</h1>
           </CardHeader>
           <CardContent>
-            <p className="text-destructive">{error || "User not found"}</p>
+            <p className="text-destructive">{errorMessage}</p>
             <Button
               variant="outline"
               onClick={() => router.push("/dashboard/users")}

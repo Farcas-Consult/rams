@@ -16,7 +16,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
 import {
   Select,
   SelectContent,
@@ -85,7 +84,6 @@ export function UserForm({ mode, initialData }: UserFormProps) {
             role: initialData.role,
             permissions: initialData.permissions,
             status: initialData.status,
-            password: "",
           }
         : {
             email: "",
@@ -122,7 +120,6 @@ export function UserForm({ mode, initialData }: UserFormProps) {
         if (!payload.id && initialData) {
           payload.id = initialData.id;
         }
-        if (!payload.password) delete payload.password;
         await updateUser(payload);
         router.push("/dashboard/users");
         router.refresh();
@@ -341,29 +338,6 @@ export function UserForm({ mode, initialData }: UserFormProps) {
                         Sends a sign-in link so the user can set their password.
                       </FormDescription>
                     </div>
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {mode === "edit" && (
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Set Temporary Password</FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        {...field}
-                        placeholder="Leave blank to keep current password"
-                        autoComplete="new-password"
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Setting a password will override any existing credential.
-                    </FormDescription>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
