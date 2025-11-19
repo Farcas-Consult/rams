@@ -5,8 +5,17 @@ import {
   getPermissionCatalog,
   getUserStats,
   getUsers,
+  getUserById,
 } from "../services/user-service";
 import { UserQuery } from "../schemas/user-schemas";
+
+export const useUser = (id: string) => {
+  return useQuery({
+    queryKey: ["user", id],
+    queryFn: () => getUserById(id),
+    enabled: !!id,
+  });
+};
 
 export const useUsers = (query: UserQuery) => {
   return useQuery({

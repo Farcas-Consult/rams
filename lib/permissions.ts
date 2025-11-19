@@ -187,4 +187,12 @@ export function getDefaultPermissionsForRole(role: UserRole): PermissionKey[] {
   return ROLE_DEFAULT_PERMISSIONS[role] ?? [];
 }
 
+export function hasPermission(
+  user: { role: UserRole; permissions: PermissionKey[] },
+  permission: PermissionKey
+) {
+  if (user.role === "superadmin") return true;
+  return user.permissions.includes(permission);
+}
+
 
