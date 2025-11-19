@@ -40,8 +40,10 @@ export default async function page() {
                       Log in
                     </Button>
                   </Link>
-                  <Link href="/signup">
-                    <Button size="sm">Sign up</Button>
+                  <Link href="/forgot-password">
+                    <Button size="sm" variant="ghost">
+                      Forgot password
+                    </Button>
                   </Link>
                 </>
               )}
@@ -63,12 +65,12 @@ export default async function page() {
           <div className="flex gap-4 mt-4">
             <Link href="/login">
               <Button size="lg" className="gap-2">
-                Get Started <IconChevronRight size={18} />
+                Log in <IconChevronRight size={18} />
               </Button>
             </Link>
-            <Link href="/signup">
+            <Link href="/forgot-password">
               <Button size="lg" variant="outline">
-                Sign Up
+                Forgot password
               </Button>
             </Link>
           </div>
