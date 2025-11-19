@@ -9,7 +9,7 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 
- export type TableTypes ="member"|"subscription_plan"|"gym_class"|"staff"|"member-payment-history"|"tasks"|"daypass"|"lockers"|"locker_plan"
+ export type TableTypes ="member"|"subscription_plan"|"gym_class"|"staff"|"member-payment-history"|"tasks"|"daypass"|"lockers"|"locker_plan"|"users"|"assets"
 
 export type TableProps<T> = {
   data: T[];
