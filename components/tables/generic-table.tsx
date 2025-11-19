@@ -224,6 +224,20 @@ export function GenericTable<T>({
                     Add Locker Plan
                   </Link>
                 </Button>
+              ) : tableType === "users" && (role === 'admin' || role === 'superadmin') ? (
+                <Button asChild>
+                  <Link href="/dashboard/users/new">
+                    <IconPlus />
+                    Add User
+                  </Link>
+                </Button>
+              ) : tableType === "assets" && (role === 'admin' || role === 'superadmin') ? (
+                <Button asChild>
+                  <Link href="/dashboard/assets/new">
+                    <IconPlus />
+                    Add Asset
+                  </Link>
+                </Button>
               ) : null
             }  
           </div>

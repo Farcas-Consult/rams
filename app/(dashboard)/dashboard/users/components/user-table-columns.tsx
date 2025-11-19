@@ -17,6 +17,8 @@ import { TransformedUser } from "../types/user-types";
 import Link from "next/link";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { DeleteUserDialog } from "./delete-user-dialog";
+import { useDeleteUser } from "../hooks/useUserMutations";
 
 export const useUserColumns = (): ColumnDef<TransformedUser>[] => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -25,15 +27,6 @@ export const useUserColumns = (): ColumnDef<TransformedUser>[] => {
   const handleDeleteClick = (user: TransformedUser) => {
     setUserToDelete(user);
     setDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (userToDelete) {
-      // TODO: Implement delete user functionality
-      console.log("Delete user:", userToDelete.id);
-      setDeleteDialogOpen(false);
-      setUserToDelete(null);
-    }
   };
 
   return [
@@ -163,28 +156,16 @@ export const useUserColumns = (): ColumnDef<TransformedUser>[] => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* TODO: Add Delete Confirmation Dialog */}
-            {deleteDialogOpen && userToDelete && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                <div className="bg-background p-4 rounded-lg">
-                  <p>Delete user {userToDelete.name}?</p>
-                  <div className="flex gap-2 mt-4">
-                    <Button
-                      variant="destructive"
-                      onClick={handleConfirmDelete}
-                    >
-                      Delete
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setDeleteDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
+            <DeleteUserDialog
+              open={deleteDialogOpen}
+              onOpenChange={setDeleteDialogOpen}
+              user={userToDelete}
+              onSuccess={() => {
+                setUserToDelete(null);
+                // Optionally refresh the page or invalidate queries
+                window.location.reload();
+              }}
+            />
           </>
         );
       },
