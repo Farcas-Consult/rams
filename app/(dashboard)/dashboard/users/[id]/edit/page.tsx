@@ -6,39 +6,28 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import * as React from "react";
+import type { UserResponse } from "../../schemas/user-schemas";
 
 interface EditUserPageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export default function EditUserPage({ params }: EditUserPageProps) {
   const router = useRouter();
-  const [userId, setUserId] = useState<string>("");
-  const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = React.useState<UserResponse | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const loadUser = async () => {
       try {
-        const resolvedParams = await params;
-        const id = resolvedParams.id;
-        setUserId(id);
-        
-        const userData = await getUserById(id);
+        const userData = await getUserById(params.id);
         if (!userData) {
           setError("User not found");
           return;
         }
-
-        setUser({
-          id: userData.id,
-          name: userData.name,
-          email: userData.email,
-          image: userData.image,
-          emailVerified: userData.emailVerified,
-        });
+        setUser(userData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load user");
       } finally {
@@ -47,7 +36,7 @@ export default function EditUserPage({ params }: EditUserPageProps) {
     };
 
     loadUser();
-  }, [params]);
+  }, [params.id]);
 
   if (isLoading) {
     return (
@@ -92,7 +81,7 @@ export default function EditUserPage({ params }: EditUserPageProps) {
 
   return (
     <div className="container mx-auto py-6 px-4 lg:px-6">
-      <UserForm mode="edit" initialData={user} userId={userId} />
+      <UserForm mode="edit" initialData={user} />
     </div>
   );
 }

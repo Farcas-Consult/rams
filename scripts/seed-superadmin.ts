@@ -10,6 +10,25 @@ import { db, pool, schema } from "@/db";
 const SUPERADMIN_EMAIL = "festusgitahik@gmail.com";
 const SUPERADMIN_PASSWORD = "changeme";
 const SUPERADMIN_NAME = "Super Admin";
+const SUPERADMIN_USERNAME = "super.admin";
+
+const ALL_PERMISSIONS = [
+  "dashboard:view",
+  "users:create",
+  "users:read",
+  "users:update",
+  "users:delete",
+  "assets:create",
+  "assets:read",
+  "assets:update",
+  "assets:delete",
+  "live-feed:read",
+  "decommissioning:read",
+  "decommissioning:update",
+  "reports:read",
+  "reports:export",
+  "kpis:view",
+];
 
 async function seedSuperAdmin() {
   const now = new Date();
@@ -30,16 +49,30 @@ async function seedSuperAdmin() {
         .set({
           name: existingUser.name ?? SUPERADMIN_NAME,
           emailVerified: true,
+          username: existingUser.username ?? SUPERADMIN_USERNAME,
+          status: "active",
+          role: "superadmin",
+          permissions: ALL_PERMISSIONS,
+          invitedAt: null,
+          invitationToken: null,
+          invitationExpiresAt: null,
           updatedAt: now,
         })
         .where(eq(schema.user.id, existingUser.id));
     } else {
       await tx.insert(schema.user).values({
         id: userId,
+        username: SUPERADMIN_USERNAME,
         name: SUPERADMIN_NAME,
         email: SUPERADMIN_EMAIL,
         emailVerified: true,
         image: null,
+        status: "active",
+        role: "superadmin",
+        permissions: ALL_PERMISSIONS,
+        invitedAt: null,
+        invitationToken: null,
+        invitationExpiresAt: null,
         createdAt: now,
         updatedAt: now,
       });

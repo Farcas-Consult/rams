@@ -3,9 +3,7 @@
 import {
   IconTrendingUp,
   IconTrendingDown,
-  IconUsers,
   IconUserCheck,
-  IconUserX,
   IconShieldOff,
   IconUserPlus,
 } from "@tabler/icons-react";
@@ -41,13 +39,17 @@ export function UserKPICards() {
   }
 
   const {
-    totalUsers = 0,
-    activeUsers = 0,
-    inactiveUsers = 0,
-    suspendedUsers = 0,
-    newThisMonth = 0,
-    growthRate = 0,
-  } = stats || {};
+        totalUsers = 0,
+        activeUsers = 0,
+        inactiveUsers = 0,
+        suspendedUsers = 0,
+        invitedUsers = 0,
+        superAdmins = 0,
+        admins = 0,
+        newThisMonth = 0,
+        growthRate = 0,
+        activeRatio = 0,
+      } = stats || {};
 
   const isPositiveGrowth = growthRate >= 0;
 
@@ -74,16 +76,16 @@ export function UserKPICards() {
           <div className="line-clamp-1 flex gap-2 font-medium">
             {isPositiveGrowth ? (
               <>
-                Growing user base <IconTrendingUp className="size-4" />
+                {newThisMonth} new this month <IconTrendingUp className="size-4" />
               </>
             ) : (
               <>
-                User base declining <IconTrendingDown className="size-4" />
+                Flat growth <IconTrendingDown className="size-4" />
               </>
             )}
           </div>
           <div className="text-muted-foreground">
-            All registered users in the system
+            All registered accounts in RAMS
           </div>
         </CardFooter>
       </Card>
@@ -97,85 +99,62 @@ export function UserKPICards() {
           <CardAction>
             <Badge variant="outline" className="text-green-600 dark:text-green-400">
               <IconUserCheck className="size-3" />
-              {totalUsers > 0 ? ((activeUsers / totalUsers) * 100).toFixed(1) : 0}%
+              {activeRatio.toFixed(1)}%
             </Badge>
           </CardAction>
         </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Users with active access <IconUserCheck className="size-4" />
+        <CardFooter className="flex flex-col gap-1.5 text-sm">
+          <div className="flex items-center gap-2 font-medium">
+            {totalUsers - activeUsers} not active
           </div>
           <div className="text-muted-foreground">
-            {totalUsers - activeUsers} not active
+            {inactiveUsers} inactive · {suspendedUsers} suspended
           </div>
         </CardFooter>
       </Card>
 
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>New This Month</CardDescription>
+          <CardDescription>Pending Invites</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {newThisMonth}
+            {invitedUsers}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
               <IconUserPlus className="size-3" />
-              New
+              Awaiting signup
             </Badge>
           </CardAction>
         </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Recent activity <IconUserPlus className="size-4" />
+        <CardFooter className="flex flex-col gap-1.5 text-sm">
+          <div className="flex items-center gap-2 font-medium">
+            Watch for expired invites
           </div>
           <div className="text-muted-foreground">
-            Users added by admins this month
+            Resend or revoke invitations as needed
           </div>
         </CardFooter>
       </Card>
 
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Inactive Users</CardDescription>
+          <CardDescription>Privileged Seats</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {inactiveUsers}
+            {(superAdmins + admins).toLocaleString()}
           </CardTitle>
           <CardAction>
-            <Badge variant="outline" className="text-gray-600 dark:text-gray-400">
-              <IconUserX className="size-3" />
-              Inactive
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Accounts not in use <IconUserX className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Reactivate when needed
-          </div>
-        </CardFooter>
-      </Card>
-
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Suspended Users</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {suspendedUsers}
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline" className="text-red-600 dark:text-red-400">
+            <Badge variant="outline">
               <IconShieldOff className="size-3" />
-              Suspended
+              {superAdmins} super · {admins} admin
             </Badge>
           </CardAction>
         </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Access revoked <IconShieldOff className="size-4" />
+        <CardFooter className="flex flex-col gap-1.5 text-sm">
+          <div className="flex items-center gap-2 font-medium">
+            Monitor least-privilege access
           </div>
           <div className="text-muted-foreground">
-            Review and restore when ready
+            Promote/demote roles as responsibilities change
           </div>
         </CardFooter>
       </Card>
