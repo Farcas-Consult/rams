@@ -1,4 +1,4 @@
-import { ResetPasswordForm } from "@/components/auth/reset-password-form";
+import { ResetPasswordForm } from "@/app/auth/components/reset-password-form";
 
 interface ResetPasswordPageProps {
   searchParams?: { token?: string; error?: string };

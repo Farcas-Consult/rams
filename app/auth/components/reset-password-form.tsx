@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { IconLoader } from "@tabler/icons-react";
+
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +16,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { IconLoader } from "@tabler/icons-react";
+
+import { useResetPasswordMutation } from "@/app/auth/hooks/use-auth-mutations";
 
 type ResetPasswordFormProps = React.ComponentProps<"div"> & {
   token?: string | null;
@@ -30,70 +33,41 @@ export function ResetPasswordForm({
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
-  const [message, setMessage] = useState("");
-
   const hasToken = Boolean(token);
+  const mutation = useResetPasswordMutation();
+  const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (mutation.isSuccess) {
+      setPassword("");
+      setConfirmPassword("");
+      const timeout = setTimeout(() => {
+        router.push("/auth/login");
+      }, 1500);
+      return () => clearTimeout(timeout);
+    }
+  }, [mutation.isSuccess, router]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setStatus("idle");
-    setMessage("");
+    setFormError(null);
 
     if (!token) {
-      setStatus("error");
-      setMessage("The reset token is missing or invalid.");
+      setFormError("The reset token is missing or invalid.");
       return;
     }
 
     if (password.length < 8) {
-      setStatus("error");
-      setMessage("Password must be at least 8 characters long.");
+      setFormError("Password must be at least 8 characters long.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setStatus("error");
-      setMessage("Passwords do not match.");
+      setFormError("Passwords do not match.");
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const response = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          newPassword: password,
-          token,
-        }),
-      });
-
-      const body = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(body?.message || "Unable to reset password.");
-      }
-
-      setStatus("success");
-      setMessage("Password updated. You can now sign in with the new password.");
-      setPassword("");
-      setConfirmPassword("");
-      setTimeout(() => router.push("/login"), 2000);
-    } catch (error) {
-      setStatus("error");
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
+    mutation.mutate({ token, newPassword: password });
   }
 
   return (
@@ -108,17 +82,24 @@ export function ResetPasswordForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {(tokenError || status !== "idle") && (
+          {(tokenError || formError || mutation.isError || mutation.isSuccess) && (
             <Alert
               variant={
-                tokenError || status === "error" ? "destructive" : "default"
+                tokenError || formError || mutation.isError
+                  ? "destructive"
+                  : "default"
               }
               className="mb-4"
             >
               <AlertDescription>
                 {tokenError ||
-                  message ||
-                  "We were unable to validate this reset link."}
+                  formError ||
+                  (mutation.isError && mutation.error instanceof Error
+                    ? mutation.error.message
+                    : undefined) ||
+                  (mutation.isSuccess
+                    ? "Password updated. You can now sign in with the new password."
+                    : "We were unable to validate this reset link.")}
               </AlertDescription>
             </Alert>
           )}
@@ -148,8 +129,12 @@ export function ResetPasswordForm({
                 />
               </div>
               <div className="flex flex-col gap-3">
-                <Button disabled={loading} type="submit" className="w-full">
-                  {loading ? (
+                <Button
+                  disabled={mutation.isPending}
+                  type="submit"
+                  className="w-full"
+                >
+                  {mutation.isPending ? (
                     <IconLoader className="animate-spin" stroke={2} />
                   ) : (
                     "Update password"
@@ -159,7 +144,7 @@ export function ResetPasswordForm({
                   type="button"
                   variant="ghost"
                   className="w-full"
-                  onClick={() => router.push("/login")}
+                  onClick={() => router.push("/auth/login")}
                 >
                   Back to login
                 </Button>
@@ -174,7 +159,7 @@ export function ResetPasswordForm({
               <Button
                 variant="default"
                 className="w-full"
-                onClick={() => router.push("/forgot-password")}
+                onClick={() => router.push("/auth/forgot-password")}
               >
                 Request new link
               </Button>
