@@ -1,9 +1,9 @@
-import { user } from "@src/generated/prisma/client";
+import type { User } from "@/db/schema";
 
 /**
- * User type based on Prisma schema
+ * User type inferred from the Drizzle schema
  */
-export type User = user;
+export type { User };
 
 /**
  * Transformed user type for table display
