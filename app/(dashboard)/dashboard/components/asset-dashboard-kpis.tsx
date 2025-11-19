@@ -4,56 +4,75 @@ import { TrendingUp, Building2, AlertTriangle, RefreshCw } from "lucide-react";
 
 import {
   Card,
+  CardAction,
   CardDescription,
   CardHeader,
   CardTitle,
-  CardContent,
+  CardFooter,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const kpiCards = [
   {
     label: "Total Assets",
     value: "1,248",
-    delta: "+4.6% vs last month",
+    delta: "+4.6%",
+    detail: "vs last month",
     icon: TrendingUp,
-    accent: "text-emerald-500",
+    trend: "up",
   },
   {
     label: "Assets In Service",
     value: "982",
-    delta: "78% utilization",
+    delta: "78%",
+    detail: "utilization",
     icon: Building2,
-    accent: "text-blue-500",
+    trend: "up",
   },
   {
     label: "In Maintenance",
     value: "142",
-    delta: "12 scheduled today",
+    delta: "+12",
+    detail: "scheduled today",
     icon: RefreshCw,
-    accent: "text-amber-500",
+    trend: "neutral",
   },
   {
     label: "Decommissioned",
     value: "124",
-    delta: "18 ready for review",
+    delta: "18",
+    detail: "ready for review",
     icon: AlertTriangle,
-    accent: "text-rose-500",
+    trend: "down",
   },
 ];
 
 export function AssetDashboardKPIs() {
   return (
-    <div className="grid gap-4 px-4 lg:px-6 md:grid-cols-2 xl:grid-cols-4">
+    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-bl *:data-[slot=card]:shadow-xs lg:px-6 md:grid-cols-2 xl:grid-cols-4">
       {kpiCards.map((kpi) => (
-        <Card key={kpi.label} className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardDescription className="font-medium">{kpi.label}</CardDescription>
-            <kpi.icon className={`h-4 w-4 ${kpi.accent}`} />
+        <Card key={kpi.label} className="@container/card" data-slot="card">
+          <CardHeader>
+            <CardDescription>{kpi.label}</CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              {kpi.value}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline" className="gap-1.5">
+                <kpi.icon className="size-4" />
+                {kpi.delta}
+              </Badge>
+            </CardAction>
           </CardHeader>
-          <CardContent>
-            <CardTitle className="text-3xl font-semibold">{kpi.value}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">{kpi.delta}</p>
-          </CardContent>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              {kpi.trend === "up" && "Trending up"}
+              {kpi.trend === "down" && "Trending down"}
+              {kpi.trend === "neutral" && "Status update"}
+              <kpi.icon className="size-4" />
+            </div>
+            <div className="text-muted-foreground">{kpi.detail}</div>
+          </CardFooter>
         </Card>
       ))}
     </div>

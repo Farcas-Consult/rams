@@ -40,7 +40,7 @@ export function AssetLocationBars() {
               formatter={(value) => [`${value} assets`, "Count"]}
               contentStyle={{ borderRadius: 8 }}
             />
-            <Bar dataKey="assets" fill="hsl(var(--chart-1))" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="assets" fill="var(--chart-1)" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
