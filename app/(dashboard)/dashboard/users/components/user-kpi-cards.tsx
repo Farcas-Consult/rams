@@ -126,10 +126,10 @@ export function UserKPICards() {
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Recent signups <IconUserPlus className="size-4" />
+            Recent activity <IconUserPlus className="size-4" />
           </div>
           <div className="text-muted-foreground">
-            Users registered this month
+            Users added by admins this month
           </div>
         </CardFooter>
       </Card>
