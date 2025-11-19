@@ -24,19 +24,22 @@ const generateDummyUsers = (count: number = 10): UserResponse[] => {
     "Charlie Brown", "Diana Prince", "Eve Adams", "Frank Miller",
     "Grace Lee", "Henry Wilson", "Ivy Chen", "Jack Taylor",
   ];
+  const statuses = ["active", "inactive", "suspended"];
 
   return Array.from({ length: count }, (_, i) => {
     const name = names[i % names.length] || `User ${i + 1}`;
-    const email = `${name.toLowerCase().replace(/\s+/g, ".")}@example.com`;
+    const username = name.toLowerCase().replace(/\s+/g, ".");
+    const email = `${username}@example.com`;
     const createdAt = new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000);
     const updatedAt = new Date(createdAt.getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000);
 
     return {
       id: `user-${i + 1}`,
       name,
+      username,
       email,
-      emailVerified: Math.random() > 0.3, // 70% verified
-      image: Math.random() > 0.5 ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}` : null,
+      status: statuses[i % statuses.length] as "active" | "inactive" | "suspended",
+      image: null,
       createdAt,
       updatedAt,
     };
@@ -150,8 +153,9 @@ export const createUser = async (
   const newUser: UserResponse = {
     id: `user-${Date.now()}`,
     name: rest.name,
+    username: rest.username,
     email: rest.email,
-    emailVerified: rest.emailVerified ?? false,
+    status: rest.status ?? "active",
     image: null,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -209,8 +213,9 @@ export const getUserStats = async () => {
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   const allUsers = generateDummyUsers(50);
-  const verifiedCount = allUsers.filter((u) => u.emailVerified).length;
-  const unverifiedCount = allUsers.length - verifiedCount;
+  const activeCount = allUsers.filter((u) => u.status === "active").length;
+  const inactiveCount = allUsers.filter((u) => u.status === "inactive").length;
+  const suspendedCount = allUsers.filter((u) => u.status === "suspended").length;
   const newThisMonth = allUsers.filter((u) => {
     const created = new Date(u.createdAt);
     const now = new Date();
@@ -222,8 +227,9 @@ export const getUserStats = async () => {
 
   return {
     totalUsers: allUsers.length,
-    verifiedUsers: verifiedCount,
-    unverifiedUsers: unverifiedCount,
+    activeUsers: activeCount,
+    inactiveUsers: inactiveCount,
+    suspendedUsers: suspendedCount,
     newThisMonth,
     growthRate: 12.5, // Dummy percentage
   };
