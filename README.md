@@ -63,6 +63,47 @@
 - `npm run db:migrate` — run generated migrations
 - Customize authentication using Better Auth settings.
 
+## 👤 User management & permissions
+
+- **Roles**
+  - `superadmin`: unrestricted access, can assign any role or permission.
+  - `admin`: full CRUD on dashboard modules (no system settings yet).
+  - `user`: read-only defaults (dashboard, KPIs, read-only module access).
+- **Permission groups** (grant whatever the role does not already provide):
+  - Dashboard & KPIs (`dashboard:view`, `kpis:view`)
+  - Users (`users:create|read|update|delete`)
+  - Assets (`assets:create|read|update|delete`)
+  - Live feed, Decommissioning, Reports (read/update/export as applicable)
+- **Invitation workflow**
+  1. Go to **Dashboard → Users → Add User**.
+  2. Provide email, optional display name, choose role & fine-grained permissions.
+  3. Leave “Send invitation email” enabled to email the invite token. You can resend or cancel invites from the edit form (`status = invited`).
+  4. Once the user signs in and sets a password, update their status to `active` if needed.
+
+All new API endpoints (`/api/users`, `/api/users/[id]`, `/api/users/stats`, `/api/users/permissions`) enforce Better Auth sessions plus the relevant `users:*` permission.
+
+## 🗃️ Database & seeding
+
+1. Set `DATABASE_URL` in your environment (e.g. `.env.local`).
+2. Apply the new roles/permissions migration:
+   ```sh
+   pnpm db:push
+   ```
+3. Seed or update the super admin (grants every permission):
+   ```sh
+   pnpm db:seed:superadmin
+   ```
+
+The seeder will create/update the user defined in `scripts/seed-superadmin.ts`, ensure they are `superadmin`, verified, and provision a credential login.
+
+## ✅ Manual verification checklist
+
+- Invite a user via `/dashboard/users/new`, confirm a row with `status=invited` appears and `/api/users` responds with the new entry.
+- Edit a user to change role and fine-grained permissions; ensure the UI reflects the updated badges in the table.
+- Resend an invitation from the edit form and observe the console log of the refreshed token (until email delivery is wired up).
+- Delete a user from the table actions and confirm the entry disappears (Better Auth cascades accounts/sessions).
+- Review the KPI cards—counts for invited/active/admin seats should update after the above actions.
+
 ## 🛠️ Tech Stack
 
 - **Next.js 16** - React framework

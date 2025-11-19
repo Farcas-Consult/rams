@@ -1,25 +1,54 @@
 import {
+  pgEnum,
   pgTable,
   text,
   boolean,
   timestamp,
   uniqueIndex,
+  jsonb,
 } from "drizzle-orm/pg-core";
-import { relations, type InferSelectModel } from "drizzle-orm";
+import { relations, sql, type InferSelectModel } from "drizzle-orm";
+
+export const userStatusEnum = pgEnum("user_status", [
+  "invited",
+  "active",
+  "inactive",
+  "suspended",
+]);
+
+export const userRoleEnum = pgEnum("user_role", [
+  "superadmin",
+  "admin",
+  "user",
+]);
 
 export const user = pgTable(
   "user",
   {
     id: text("id").primaryKey(),
+    username: text("username").notNull(),
     name: text("name").notNull(),
     email: text("email").notNull(),
     emailVerified: boolean("emailVerified").notNull().default(false),
     image: text("image"),
+    status: userStatusEnum("status").notNull().default("active"),
+    role: userRoleEnum("role").notNull().default("user"),
+    permissions: jsonb("permissions")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    invitedAt: timestamp("invitedAt", { mode: "date" }),
+    invitationToken: text("invitationToken"),
+    invitationExpiresAt: timestamp("invitationExpiresAt", { mode: "date" }),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull(),
   },
   (table) => ({
+    usernameIdx: uniqueIndex("user_username_key").on(table.username),
     emailIdx: uniqueIndex("user_email_key").on(table.email),
+    invitationTokenIdx: uniqueIndex("user_invitation_token_key").on(
+      table.invitationToken
+    ),
   })
 );
 

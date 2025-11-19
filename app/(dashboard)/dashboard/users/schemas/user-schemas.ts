@@ -1,20 +1,35 @@
 import { z } from "zod";
 
-/**
- * Schema for creating a new user
- */
-const userStatusEnum = z.enum(["active", "inactive", "suspended"]);
+import {
+  PERMISSION_KEYS,
+  USER_ROLES,
+  USER_STATUSES,
+  type PermissionKey,
+} from "@/lib/permissions";
 
+const permissionEnum = z.enum(
+  PERMISSION_KEYS as unknown as [PermissionKey, ...PermissionKey[]]
+);
+const userStatusEnum = z.enum(USER_STATUSES);
+const userRoleEnum = z.enum(USER_ROLES);
+
+/**
+ * Schema for creating/inviting a user
+ */
 export const createUserSchema = z.object({
-  name: z.string().min(1, "Name is required").max(255, "Name is too long"),
-  username: z
-    .string()
-    .min(3, "Username must be at least 3 characters")
-    .max(30, "Username must be at most 30 characters")
-    .regex(/^[a-zA-Z0-9._-]+$/, "Username can only contain letters, numbers, dots, underscores, and dashes"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  status: userStatusEnum.default("active"),
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(255, "Name is too long")
+    .optional(),
+  role: userRoleEnum.default("user"),
+  permissions: z
+    .array(permissionEnum)
+    .max(PERMISSION_KEYS.length)
+    .optional(),
+  status: userStatusEnum.default("invited").optional(),
+  sendInvite: z.boolean().default(true).optional(),
 });
 
 /**
@@ -22,16 +37,23 @@ export const createUserSchema = z.object({
  */
 export const updateUserSchema = z.object({
   id: z.string().min(1, "User ID is required"),
-  name: z.string().min(1, "Name is required").max(255, "Name is too long").optional(),
-  username: z
-    .string()
-    .min(3, "Username must be at least 3 characters")
-    .max(30, "Username must be at most 30 characters")
-    .regex(/^[a-zA-Z0-9._-]+$/)
-    .optional(),
   email: z.string().email("Invalid email address").optional(),
-  password: z.string().min(8, "Password must be at least 8 characters").optional(),
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(255, "Name is too long")
+    .optional(),
+  role: userRoleEnum.optional(),
+  permissions: z
+    .array(permissionEnum)
+    .max(PERMISSION_KEYS.length)
+    .optional(),
   status: userStatusEnum.optional(),
+  resendInvite: z.boolean().optional(),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .optional(),
 });
 
 /**
@@ -42,7 +64,11 @@ export const userQuerySchema = z.object({
   pageSize: z.number().int().positive().max(100).default(10),
   search: z.string().optional(),
   emailVerified: z.boolean().optional(),
-  sortBy: z.enum(["name", "email", "createdAt", "updatedAt"]).optional(),
+  status: userStatusEnum.optional(),
+  role: userRoleEnum.optional(),
+  sortBy: z
+    .enum(["name", "email", "createdAt", "updatedAt", "role", "status"])
+    .optional(),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
 
@@ -51,12 +77,17 @@ export const userQuerySchema = z.object({
  */
 export const userResponseSchema = z.object({
   id: z.string(),
-  name: z.string(),
   username: z.string(),
+  name: z.string(),
   email: z.string(),
   emailVerified: z.boolean().default(false),
   status: userStatusEnum,
+  role: userRoleEnum,
+  permissions: z.array(permissionEnum),
   image: z.string().nullable(),
+  invitedAt: z.date().or(z.string()).nullable(),
+  invitationToken: z.string().nullable(),
+  invitationExpiresAt: z.date().or(z.string()).nullable(),
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
 });
@@ -72,6 +103,38 @@ export const paginatedUserResponseSchema = z.object({
   totalPages: z.number().int().nonnegative(),
 });
 
+export const userStatsSchema = z.object({
+  totalUsers: z.number().int().nonnegative(),
+  activeUsers: z.number().int().nonnegative(),
+  inactiveUsers: z.number().int().nonnegative(),
+  suspendedUsers: z.number().int().nonnegative(),
+  invitedUsers: z.number().int().nonnegative(),
+  superAdmins: z.number().int().nonnegative(),
+  admins: z.number().int().nonnegative(),
+  newThisMonth: z.number().int().nonnegative(),
+  growthRate: z.number(),
+  activeRatio: z.number(),
+});
+
+const permissionDefinitionSchema = z.object({
+  key: permissionEnum,
+  label: z.string(),
+  description: z.string().optional(),
+});
+
+export const permissionCatalogSchema = z.object({
+  roles: z.array(userRoleEnum),
+  statuses: z.array(userStatusEnum),
+  groups: z.array(
+    z.object({
+      id: z.string(),
+      label: z.string(),
+      permissions: z.array(permissionDefinitionSchema),
+    })
+  ),
+  defaults: z.record(userRoleEnum, z.array(permissionEnum)),
+});
+
 // Type exports
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
@@ -79,4 +142,8 @@ export type UserQuery = z.infer<typeof userQuerySchema>;
 export type UserResponse = z.infer<typeof userResponseSchema>;
 export type PaginatedUserResponse = z.infer<typeof paginatedUserResponseSchema>;
 export type UserStatus = z.infer<typeof userStatusEnum>;
+export type UserRole = z.infer<typeof userRoleEnum>;
+export type Permission = PermissionKey;
+export type UserStats = z.infer<typeof userStatsSchema>;
+export type PermissionCatalog = z.infer<typeof permissionCatalogSchema>;
 
