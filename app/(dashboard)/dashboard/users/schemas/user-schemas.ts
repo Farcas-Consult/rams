@@ -54,6 +54,7 @@ export const userResponseSchema = z.object({
   name: z.string(),
   username: z.string(),
   email: z.string(),
+  emailVerified: z.boolean().default(false),
   status: userStatusEnum,
   image: z.string().nullable(),
   createdAt: z.date().or(z.string()),

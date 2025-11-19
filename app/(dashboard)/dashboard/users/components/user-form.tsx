@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import * as z from "zod";
@@ -56,10 +56,14 @@ export function UserForm({ mode, initialData, userId }: UserFormProps) {
 
   const isPending = isCreating || isUpdating;
 
-  const formSchema = mode === "create" ? createUserSchema : updateUserSchema;
+  type FormValues = CreateUserInput | UpdateUserInput;
+  const formSchema = (mode === "create"
+    ? createUserSchema
+    : updateUserSchema) as z.AnyZodObject;
+  const resolver = zodResolver(formSchema) as unknown as Resolver<FormValues>;
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<FormValues>({
+    resolver,
     defaultValues:
       mode === "edit" && initialData
         ? {

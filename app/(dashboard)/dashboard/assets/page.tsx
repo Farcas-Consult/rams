@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { GenericTable } from "@/components/tables/generic-table";
 import { useAssetColumns } from "./components/asset-table-columns";
 import { useAssets } from "./hooks/useAssets";
@@ -31,16 +31,22 @@ export default function AssetsPage() {
   const columns = useAssetColumns();
 
   // Update query when pagination changes
-  const handlePaginationChange = (newPagination: {
-    pageIndex: number;
-    pageSize: number;
-  }) => {
-    setPagination(newPagination);
-    setQuery((prev) => ({
-      ...prev,
-      page: newPagination.pageIndex + 1,
-      pageSize: newPagination.pageSize,
-    }));
+  const handlePaginationChange: Dispatch<
+    SetStateAction<{
+      pageIndex: number;
+      pageSize: number;
+    }>
+  > = (updater) => {
+    setPagination((prev) => {
+      const next =
+        typeof updater === "function" ? updater(prev) : updater;
+      setQuery((prevQuery) => ({
+        ...prevQuery,
+        page: next.pageIndex + 1,
+        pageSize: next.pageSize,
+      }));
+      return next;
+    });
   };
 
   return (

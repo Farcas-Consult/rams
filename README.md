@@ -1,6 +1,6 @@
-# Next.js + Better Auth + Prisma Starter Kit
+# Next.js + Better Auth + Drizzle Starter Kit
 
-🚀 A starter kit for building modern web applications with **Next.js 16**, **Better Auth**, **Prisma**, and **shadcn/ui**.
+🚀 A starter kit for building modern web applications with **Next.js 16**, **Better Auth**, **Drizzle ORM**, and **shadcn/ui**.
 
 🔗 **[Live Demo](https://auth.achour.dev/)**
 
@@ -10,7 +10,7 @@
 
 - ✅ **Next.js 16** with App Router
 - ✅ **Better Auth** for authentication
-- ✅ **Prisma** for database management (Rust-Free Engine)
+- ✅ **Drizzle ORM** + **PostgreSQL**
 - ✅ **shadcn/ui** for UI components
 - ✅ **Dashboard** for authenticated users
 - ✅ TypeScript support
@@ -34,10 +34,10 @@
 
    Fill in the necessary values in the `.env` file.
 
-4. Set up the database:
+4. Set up the database (applies pending schema to your database):
 
    ```sh
-   npx prisma migrate dev
+   npm run db:push
    ```
 
 5. Start the development server:
@@ -47,15 +47,17 @@
 
 ## 🚀 Usage
 
-- Run `npm run dev` to start the development server.
-- Use `npx prisma studio` to manage your database visually.
+- `npm run dev` — start the development server
+- `npm run db:generate` — generate SQL migrations from the Drizzle schema
+- `npm run db:push` — push schema changes to the database
+- `npm run db:migrate` — run generated migrations
 - Customize authentication using Better Auth settings.
 
 ## 🛠️ Tech Stack
 
 - **Next.js 16** - React framework
 - **Better Auth** - Authentication
-- **Prisma** - Database ORM (Rust-Free Engine)
+- **Drizzle ORM** - Database layer
 - **shadcn/ui** - UI components
 - **TypeScript** - Type safety
 

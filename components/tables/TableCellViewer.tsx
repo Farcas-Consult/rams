@@ -25,7 +25,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { z } from "zod";
-import LoadingButton from "../ui/loading-button";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import { Separator } from "../ui/separator";
@@ -278,7 +277,9 @@ export function TableCellViewer<TItem, Schema extends z.ZodTypeAny>({
                   />
                 );
               })}
-              <LoadingButton loading={pending}  type="submit">Save</LoadingButton>
+              <Button disabled={pending} type="submit">
+                {pending ? "Saving..." : "Save"}
+              </Button>
             </form>
           </Form>
         </div>

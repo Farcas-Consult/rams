@@ -22,7 +22,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { user } from "@src/generated/prisma/client";
+import type { User } from "@/db/schema";
 
 const data = {
   navMain: [
@@ -60,7 +60,7 @@ const data = {
 };
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  user: user;
+  user: User;
 }
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
