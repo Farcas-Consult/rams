@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import Link from "next/link";
 import { IconPlus } from "@tabler/icons-react";
 
 import { GenericTable } from "@/components/tables/generic-table";
 import { Button } from "@/components/ui/button";
+import type { Role } from "@/app/(modules)/dashboard/types/gym-member";
 
 import { useUserColumns } from "./user-table-columns";
 import { useUsers } from "../hooks/useUsers";
@@ -41,6 +42,24 @@ export function UsersPageClient({
   const { data, isLoading, error } = useUsers(query);
   const columns = useUserColumns({ canUpdate, canDelete, canResend });
 
+  const resolvedCanCreate = useMemo(() => {
+    console.debug("[UsersPage] permission check", {
+      serverCanCreate: canCreate,
+    });
+    return canCreate;
+  }, [canCreate]);
+
+  const tableRole = useMemo<Role>(() => {
+    return resolvedCanCreate ? "admin" : "staff";
+  }, [resolvedCanCreate]);
+
+  useEffect(() => {
+    console.debug("[UsersPage] resolved capabilities", {
+      resolvedCanCreate,
+      tableRole,
+    });
+  }, [resolvedCanCreate, tableRole]);
+
   const handlePaginationChange: Dispatch<
     SetStateAction<{
       pageIndex: number;
@@ -68,7 +87,7 @@ export function UsersPageClient({
             Manage system users and their accounts
           </p>
         </div>
-        {canCreate && (
+        {resolvedCanCreate && (
           <Button asChild>
             <Link href="/dashboard/users/new">
               <IconPlus className="mr-2 size-4" />
@@ -98,7 +117,7 @@ export function UsersPageClient({
             setPagination={handlePaginationChange}
             pageCount={data?.totalPages || -1}
             pending={isLoading}
-            role={"admin" as any}
+            role={tableRole}
             tableType="users"
             withFilters
             withPagination
