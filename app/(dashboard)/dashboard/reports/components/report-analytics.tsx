@@ -14,7 +14,15 @@ import {
   YAxis,
 } from "recharts";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Separator } from "@/components/ui/separator";
 
@@ -93,7 +101,12 @@ export function ReportAnalytics({ rows, metricKeys }: ReportAnalyticsProps) {
     const totalAssets = rows.length;
     const dominantDirection = directionData[0];
     return [
-      { label: "Total Assets", value: totalAssets.toString(), subtext: "Rows in current view" },
+      {
+        label: "Total Assets",
+        value: totalAssets.toString(),
+        subtext: "Rows in current view",
+        tag: "Inventory",
+      },
       {
         label: "Acq. Value (USD)",
         value: Intl.NumberFormat("en-US", {
@@ -102,37 +115,45 @@ export function ReportAnalytics({ rows, metricKeys }: ReportAnalyticsProps) {
           maximumFractionDigits: 0,
         }).format(totalValue),
         subtext: "Aggregated acquisition value",
+        tag: "Book Value",
       },
       {
         label: "Unique Missions",
         value: missionData.length.toString(),
         subtext: "Mission codes represented",
+        tag: "Missions",
       },
       {
         label: "Direction Focus",
         value: dominantDirection ? dominantDirection.direction : "Unspecified",
         subtext: dominantDirection ? `${dominantDirection.total} records` : "No direction data",
+        tag: "Direction",
       },
     ];
   }, [rows.length, totalValue, missionData.length, directionData]);
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Report Overview</CardTitle>
-          <CardDescription>Quick KPIs generated from the latest asset export.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {summary.map((item) => (
-            <div key={item.label} className="rounded-lg border border-border/60 p-4">
-              <div className="text-sm text-muted-foreground">{item.label}</div>
-              <div className="text-2xl font-semibold mt-1">{item.value}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">{item.subtext}</div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-0 *:data-[slot=card]:bg-gradient-to-bl *:data-[slot=card]:shadow-xs md:grid-cols-2 xl:grid-cols-4">
+        {summary.map((item) => (
+          <Card key={item.label} className="@container/card" data-slot="card">
+            <CardHeader>
+              <CardDescription>{item.label}</CardDescription>
+              <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+                {item.value}
+              </CardTitle>
+              <CardAction>
+                <span className="inline-flex rounded-full border border-border/80 px-3 py-1 text-xs font-semibold text-muted-foreground">
+                  {item.tag}
+                </span>
+              </CardAction>
+            </CardHeader>
+            <CardFooter className="flex-col items-start gap-1.5 text-sm">
+              <div className="text-muted-foreground">{item.subtext}</div>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="flex flex-col">

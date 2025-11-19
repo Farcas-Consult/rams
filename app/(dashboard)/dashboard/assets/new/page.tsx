@@ -1,5 +1,10 @@
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { AssetForm } from "../components/asset-form";
 
 export default function NewAssetPage() {
@@ -8,14 +13,17 @@ export default function NewAssetPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Add Asset</h1>
         <p className="text-muted-foreground">
-          Register a new asset in the RAMS inventory. All fields are editable later.
+          Register a new asset in the RAMS inventory. All fields are editable
+          later.
         </p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Asset Details</CardTitle>
-          <CardDescription>Provide a short overview to keep your asset registry tidy.</CardDescription>
+          <CardDescription>
+            Provide a short overview to keep your asset registry tidy.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <AssetForm mode="create" />
@@ -24,5 +32,3 @@ export default function NewAssetPage() {
     </div>
   );
 }
-
-

@@ -28,6 +28,7 @@ import {
 
 import { AssetReportColumn, AssetReportRow } from "../lib/get-asset-report";
 import { ReportAnalytics } from "./report-analytics";
+import { ReportRecordDrawer } from "./report-record-drawer";
 
 type ReportClientProps = {
   columns: AssetReportColumn[];
@@ -53,20 +54,65 @@ const LABELS = {
 const downloadFilename = () =>
   `rams-asset-report-${new Date().toISOString().split("T")[0]}.xlsx`;
 
-const buildColumnDefs = (columns: AssetReportColumn[]): ColumnDef<AssetReportRow>[] =>
-  columns.map((column) => ({
-    id: column.key,
-    accessorKey: column.key,
-    header: column.label,
-    cell: ({ row }) => {
-      const value = row.original[column.key];
-      return (
-        <div className="min-w-[140px] whitespace-pre-wrap text-sm">
-          {value?.toString().trim() || "—"}
-        </div>
-      );
-    },
-  }));
+const primaryColumnLabels = [
+  "Equip No.",
+  "Description",
+  "Loc. in UMOJA",
+  "Description (RAMS)",
+  "Mission",
+  "System status",
+  "Acq. Value (USD)",
+] as const;
+
+const buildColumnDefs = (
+  columns: AssetReportColumn[],
+  columnMap: Record<keyof typeof LABELS, string | undefined>
+): ColumnDef<AssetReportRow>[] => {
+  const currencyKey = columnMap.acquisitionValue;
+  return columns
+    .filter((column) => primaryColumnLabels.includes(column.label as (typeof primaryColumnLabels)[number]))
+    .map((column) => {
+      if (column.label === "Equip No.") {
+        return {
+          id: column.key,
+          accessorKey: column.key,
+          header: column.label,
+          cell: ({ row }) => (
+            <ReportRecordDrawer
+              triggerLabel={row.original[column.key] || "—"}
+              record={row.original}
+              columns={columns}
+            />
+          ),
+        } as ColumnDef<AssetReportRow>;
+      }
+
+      return {
+        id: column.key,
+        accessorKey: column.key,
+        header: column.label,
+        cell: ({ row }) => {
+          const value = row.original[column.key];
+          if (currencyKey && column.key === currencyKey) {
+            const amount = Number(value);
+            const formatted = Number.isFinite(amount)
+              ? Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                  maximumFractionDigits: 0,
+                }).format(amount)
+              : value;
+            return <span className="font-medium">{formatted || "—"}</span>;
+          }
+          return (
+            <div className="min-w-[140px] whitespace-pre-wrap text-sm">
+              {value?.toString().trim() || "—"}
+            </div>
+          );
+        },
+      } as ColumnDef<AssetReportRow>;
+    });
+};
 
 const getColumnKey = (columns: AssetReportColumn[], label: string) =>
   columns.find((col) => col.label === label)?.key;
@@ -108,7 +154,7 @@ export function ReportClient({ columns, rows }: ReportClientProps) {
     ) as Record<keyof typeof LABELS, string | undefined>;
   }, [columns]);
 
-  const columnDefs = React.useMemo(() => buildColumnDefs(columns), [columns]);
+  const columnDefs = React.useMemo(() => buildColumnDefs(columns, columnMap), [columns, columnMap]);
 
   const filterOptions = React.useMemo(() => {
     const pick = (key: keyof typeof LABELS) =>
