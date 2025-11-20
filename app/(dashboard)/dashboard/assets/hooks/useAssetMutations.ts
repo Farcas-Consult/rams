@@ -86,9 +86,10 @@ export const useDecommissionAsset = () => {
 
   return useMutation({
     mutationFn: (id: string) => decommissionAsset(id),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       toast.success("Asset moved to decommissioning");
       queryClient.invalidateQueries({ queryKey: ["assets"] });
+      queryClient.invalidateQueries({ queryKey: ["asset-stats"] });
       queryClient.invalidateQueries({ queryKey: ["decommission-stats"] });
     },
     onError: (error: Error) => {
@@ -105,6 +106,7 @@ export const useRecommissionAsset = () => {
     onSuccess: () => {
       toast.success("Asset recommissioned successfully");
       queryClient.invalidateQueries({ queryKey: ["assets"] });
+      queryClient.invalidateQueries({ queryKey: ["asset-stats"] });
       queryClient.invalidateQueries({ queryKey: ["decommission-stats"] });
     },
     onError: (error: Error) => {

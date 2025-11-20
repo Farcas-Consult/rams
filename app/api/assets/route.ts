@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { and, asc, desc, ilike, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, ilike, or, sql, eq, not, type SQL } from "drizzle-orm";
 
 import { db } from "@/db";
 import { asset, undiscoveredAsset } from "@/db/schema";
@@ -46,6 +46,11 @@ export async function GET(request: NextRequest) {
       parsedQuery.data;
 
     const filters: SQL<unknown>[] = [];
+
+    // Exclude decommissioned assets unless explicitly filtering for them
+    if (status !== "Decommissioned") {
+      filters.push(eq(asset.isDecommissioned, false));
+    }
 
     if (search) {
       const likeValue = `%${search}%`;
