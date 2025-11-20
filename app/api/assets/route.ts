@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
           ilike(asset.assetTag, likeValue),
           ilike(asset.serialNumber, likeValue),
           ilike(asset.description, likeValue)
-        )
+        )!
       );
     }
 
@@ -145,10 +145,14 @@ export async function POST(request: NextRequest) {
       assetName: parsed.data.assetName,
       category: parsed.data.category ?? null,
       location: parsed.data.location ?? null,
-      status: parsed.data.status,
+      status: parsed.data.status ?? null,
       assignedTo: parsed.data.assignedTo ?? null,
       purchaseDate: parsed.data.purchaseDate ? new Date(parsed.data.purchaseDate) : null,
-      purchasePrice: parsed.data.purchasePrice ?? parsed.data.acquistnValue ?? null,
+      purchasePrice: parsed.data.purchasePrice
+        ? String(parsed.data.purchasePrice)
+        : parsed.data.acquistnValue
+          ? String(parsed.data.acquistnValue)
+          : null,
       serialNumber: parsed.data.serialNumber ?? parsed.data.manufSerialNumber ?? null,
       manufacturer: parsed.data.manufacturer ?? null,
       model: parsed.data.model ?? null,
@@ -167,10 +171,10 @@ export async function POST(request: NextRequest) {
       busA: parsed.data.busA ?? null,
       objectType: parsed.data.objectType ?? null,
       costCtr: parsed.data.costCtr ?? null,
-      acquistnValue: parsed.data.acquistnValue ?? null,
+      acquistnValue: parsed.data.acquistnValue ? String(parsed.data.acquistnValue) : null,
       comment: parsed.data.comment ?? null,
-      origin: parsed.data.origin ?? "inventory",
-      discoveryStatus: parsed.data.discoveryStatus ?? "catalogued",
+      origin: (parsed.data.origin as "inventory" | "import" | "discovered") ?? "inventory",
+      discoveryStatus: (parsed.data.discoveryStatus as "catalogued" | "pending_review" | "undiscovered") ?? "catalogued",
       discoveredAt: parsed.data.discoveredAt ? new Date(parsed.data.discoveredAt) : null,
       discoveryNotes: parsed.data.discoveryNotes ?? null,
       isDecommissioned:

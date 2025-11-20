@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
-import { AssetForm } from "../../../components/asset-form";
-import { getAssetById } from "../../../services/asset-service";
+import { AssetForm } from "../../components/asset-form";
+import { getAssetById } from "../../services/asset-service";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type EditAssetPageProps = {

@@ -96,6 +96,13 @@ const HEADER_MAPPINGS: Record<MappableField, string[]> = {
   manufacturer: ["Manufacturer"],
   model: ["Model"],
   comment: ["Comment", "Asset Notes"],
+  origin: [],
+  discoveryStatus: [],
+  isDecommissioned: [],
+  discoveredAt: [],
+  discoveryNotes: [],
+  decommissionedAt: [],
+  decommissionReason: [],
 };
 
 const normalize = (value?: string | number | null) =>
@@ -152,7 +159,7 @@ export function ImportAssetsDialog({
       const mappedAssets: CreateAssetInput[] = dataRows
         .filter((row) => row && row.some((cell: any) => cell !== null && cell !== undefined && cell !== ""))
         .map((row) => {
-          const asset: CreateAssetInput = {};
+          const asset: Partial<CreateAssetInput> = {};
 
           headers.forEach((rawHeader, index) => {
             const headerLabel = String(rawHeader ?? "").trim();
@@ -192,9 +199,9 @@ export function ImportAssetsDialog({
             } else {
               const normalizedValue = normalize(cellValue);
               if (typeof normalizedValue === "string") {
-                asset[targetField] = normalizedValue;
+                (asset as any)[targetField] = normalizedValue;
               } else if (normalizedValue !== null && normalizedValue !== undefined) {
-                asset[targetField] = String(normalizedValue);
+                (asset as any)[targetField] = String(normalizedValue);
               }
             }
           });

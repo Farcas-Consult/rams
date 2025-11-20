@@ -97,8 +97,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         : existing.purchaseDate,
       purchasePrice:
         typeof parsed.data.purchasePrice === "number"
-          ? parsed.data.purchasePrice
-          : existing.purchasePrice,
+          ? String(parsed.data.purchasePrice)
+          : parsed.data.purchasePrice
+            ? String(parsed.data.purchasePrice)
+            : existing.purchasePrice,
       serialNumber: parsed.data.serialNumber ?? parsed.data.manufSerialNumber ?? existing.serialNumber,
       manufacturer: parsed.data.manufacturer ?? existing.manufacturer,
       model: parsed.data.model ?? existing.model,
@@ -122,11 +124,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       costCtr: parsed.data.costCtr ?? existing.costCtr,
       acquistnValue:
         typeof parsed.data.acquistnValue === "number"
-          ? parsed.data.acquistnValue
-          : existing.acquistnValue,
+          ? String(parsed.data.acquistnValue)
+          : parsed.data.acquistnValue
+            ? String(parsed.data.acquistnValue)
+            : existing.acquistnValue,
       comment: parsed.data.comment ?? existing.comment,
-      origin: parsed.data.origin ?? existing.origin,
-      discoveryStatus: parsed.data.discoveryStatus ?? existing.discoveryStatus,
+      origin: (parsed.data.origin as "inventory" | "import" | "discovered") ?? existing.origin,
+      discoveryStatus: (parsed.data.discoveryStatus as "catalogued" | "pending_review" | "undiscovered") ?? existing.discoveryStatus,
       discoveredAt: parsed.data.discoveredAt
         ? new Date(parsed.data.discoveredAt)
         : existing.discoveredAt,

@@ -58,7 +58,6 @@ export function AssetForm({ mode, initialData }: AssetFormProps) {
       material: initialData?.material ?? "",
       materialDescription: initialData?.materialDescription ?? "",
       techIdentNo: initialData?.techIdentNo ?? "",
-      assetName: initialData?.assetName ?? "",
       category: initialData?.category ?? "",
       location: initialData?.location ?? "",
       status: initialData?.status ?? "",

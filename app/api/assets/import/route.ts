@@ -68,8 +68,10 @@ export async function POST(request: NextRequest) {
                 : existing.purchaseDate,
               purchasePrice:
                 typeof entry.purchasePrice === "number"
-                  ? entry.purchasePrice
-                  : existing.purchasePrice,
+                  ? String(entry.purchasePrice)
+                  : entry.purchasePrice
+                    ? String(entry.purchasePrice)
+                    : existing.purchasePrice,
               manufacturer: entry.manufacturer ?? existing.manufacturer,
               model: entry.model ?? existing.model,
               description: entry.description ?? existing.description,
@@ -92,8 +94,10 @@ export async function POST(request: NextRequest) {
               costCtr: entry.costCtr ?? existing.costCtr,
               acquistnValue:
                 typeof entry.acquistnValue === "number"
-                  ? entry.acquistnValue
-                  : existing.acquistnValue,
+                  ? String(entry.acquistnValue)
+                  : entry.acquistnValue
+                    ? String(entry.acquistnValue)
+                    : existing.acquistnValue,
               comment: entry.comment ?? existing.comment,
             };
 
@@ -126,7 +130,11 @@ export async function POST(request: NextRequest) {
               status: entry.status ?? "Active",
               assignedTo: entry.assignedTo ?? null,
               purchaseDate: entry.purchaseDate ? new Date(entry.purchaseDate) : null,
-              purchasePrice: entry.purchasePrice ?? entry.acquistnValue ?? null,
+              purchasePrice: entry.purchasePrice
+                ? String(entry.purchasePrice)
+                : entry.acquistnValue
+                  ? String(entry.acquistnValue)
+                  : null,
               serialNumber: entry.serialNumber ?? entry.manufSerialNumber ?? null,
               manufacturer: entry.manufacturer ?? null,
               model: entry.model ?? null,
@@ -146,9 +154,9 @@ export async function POST(request: NextRequest) {
               busA: entry.busA ?? null,
               objectType: entry.objectType ?? null,
               costCtr: entry.costCtr ?? null,
-              acquistnValue: entry.acquistnValue ?? null,
+              acquistnValue: entry.acquistnValue ? String(entry.acquistnValue) : null,
               comment: entry.comment ?? null,
-              discoveryStatus: entry.discoveryStatus ?? "catalogued",
+              discoveryStatus: (entry.discoveryStatus as "catalogued" | "pending_review" | "undiscovered") ?? "catalogued",
               isDecommissioned: entry.status === "Decommissioned",
               decommissionedAt: entry.status === "Decommissioned" ? now : null,
               createdAt: now,

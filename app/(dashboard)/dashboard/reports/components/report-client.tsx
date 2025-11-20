@@ -341,7 +341,7 @@ export function ReportClient({ columns, rows }: ReportClientProps) {
         pagination={pagination}
         setPagination={setPagination}
         pending={false}
-        tableType="reports"
+        role={"admin" as any}
         withFilters={false}
         initialPageSize={pagination.pageSize}
       />

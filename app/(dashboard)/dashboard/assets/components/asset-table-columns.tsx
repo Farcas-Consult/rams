@@ -81,13 +81,13 @@ export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
         if (!value) {
           return <span className="text-sm text-muted-foreground">—</span>;
         }
-        return (
-          <div className="text-sm">
-            {typeof value === "string" && value.length > 60
+        const displayValue =
+          value instanceof Date
+            ? value.toLocaleDateString()
+            : typeof value === "string" && value.length > 60
               ? `${value.slice(0, 60)}…`
-              : value}
-          </div>
-        );
+              : String(value);
+        return <div className="text-sm">{displayValue}</div>;
       },
     })
   );
