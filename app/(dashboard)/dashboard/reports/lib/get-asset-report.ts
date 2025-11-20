@@ -1,4 +1,4 @@
-import { cache } from "react";
+import { ReportHeader, type ReportRow } from "../data/report-data";
 
 export type AssetReportColumn = {
   key: string;
@@ -14,15 +14,6 @@ export type AssetReportDataset = {
   rows: AssetReportRow[];
 };
 
-type RawReportRow = Record<string, string>;
-
-type DatasetSource = {
-  headers: string[];
-  rows: RawReportRow[];
-};
-
-let datasetSource: DatasetSource | null = null;
-
 const createColumnKey = (label: string, index: number) => {
   const base =
     label
@@ -32,29 +23,46 @@ const createColumnKey = (label: string, index: number) => {
   return `${base}_${index}`;
 };
 
-export const primeAssetReportDataset = (source: DatasetSource) => {
-  datasetSource = source;
-};
-
-export const getAssetReportDataset = cache((): AssetReportDataset => {
-  if (!datasetSource) {
-    throw new Error("Asset report dataset has not been initialized");
-  }
-
-  const columns: AssetReportColumn[] = datasetSource.headers.map((label, index) => ({
+/**
+ * Transforms report rows (mapped from database assets) into the report dataset format
+ * used by the ReportClient component
+ */
+export function createAssetReportDataset(
+  headers: readonly ReportHeader[],
+  rows: ReportRow[]
+): AssetReportDataset {
+  const columns: AssetReportColumn[] = headers.map((label, index) => ({
     key: createColumnKey(label, index),
     label,
   }));
 
-  const rows: AssetReportRow[] = datasetSource.rows.map((row, rowIndex) => {
+  const assetReportRows: AssetReportRow[] = rows.map((row, rowIndex) => {
     const record: AssetReportRow = { id: `row-${rowIndex}` };
     columns.forEach(({ key, label }) => {
-      record[key] = row[label] ?? "";
+      record[key] = row[label as ReportHeader] ?? "";
     });
     return record;
   });
 
-  return { columns, rows };
-});
+  return { columns, rows: assetReportRows };
+}
+
+// Deprecated: Kept for backward compatibility, but should not be used
+// Use createAssetReportDataset instead
+export const primeAssetReportDataset = (_source: {
+  headers: string[];
+  rows: Record<string, string>[];
+}) => {
+  console.warn(
+    "primeAssetReportDataset is deprecated. Use createAssetReportDataset instead."
+  );
+};
+
+// Deprecated: Kept for backward compatibility, but should not be used
+export const getAssetReportDataset = () => {
+  throw new Error(
+    "getAssetReportDataset is deprecated. Use createAssetReportDataset instead."
+  );
+};
 
 
