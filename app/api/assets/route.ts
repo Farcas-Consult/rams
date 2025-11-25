@@ -134,6 +134,17 @@ export async function POST(request: NextRequest) {
     }
 
     const now = new Date();
+
+    const origin =
+      parsed.data.origin && ["inventory", "import", "discovered"].includes(parsed.data.origin)
+        ? parsed.data.origin
+        : "inventory";
+
+    const discoveryStatus =
+      parsed.data.discoveryStatus &&
+      ["catalogued", "pending_review", "undiscovered"].includes(parsed.data.discoveryStatus)
+        ? parsed.data.discoveryStatus
+        : "catalogued";
     const newAsset = {
       id: randomUUID(),
       plnt: parsed.data.plnt ?? null,
@@ -173,8 +184,8 @@ export async function POST(request: NextRequest) {
       costCtr: parsed.data.costCtr ?? null,
       acquistnValue: parsed.data.acquistnValue ? String(parsed.data.acquistnValue) : null,
       comment: parsed.data.comment ?? null,
-      origin: (parsed.data.origin as "inventory" | "import" | "discovered") ?? "inventory",
-      discoveryStatus: (parsed.data.discoveryStatus as "catalogued" | "pending_review" | "undiscovered") ?? "catalogued",
+      origin,
+      discoveryStatus,
       discoveredAt: parsed.data.discoveredAt ? new Date(parsed.data.discoveredAt) : null,
       discoveryNotes: parsed.data.discoveryNotes ?? null,
       isDecommissioned:
