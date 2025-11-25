@@ -11,16 +11,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import type { DashboardChartSlice } from "@/lib/dashboard-data";
 
-const assetTypeData = [
-  { type: "IT Equipment", value: 420, fill: "var(--chart-1)" },
-  { type: "Vehicles", value: 180, fill: "var(--chart-2)" },
-  { type: "Heavy Machinery", value: 135, fill: "var(--chart-3)" },
-  { type: "Medical Devices", value: 98, fill: "var(--chart-4)" },
-  { type: "Facilities", value: 74, fill: "var(--chart-5)" },
+const COLOR_TOKENS = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+  "var(--chart-6)",
 ];
 
-export function AssetTypePie() {
+type AssetTypePieProps = {
+  data: DashboardChartSlice[];
+};
+
+export function AssetTypePie({ data }: AssetTypePieProps) {
+  const hasData = data.length > 0;
+
   return (
     <Card className="flex flex-col">
       <CardHeader>
@@ -28,41 +36,54 @@ export function AssetTypePie() {
         <CardDescription>Distribution across major categories</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
-        <ResponsiveContainer width="100%" height={260}>
-          <PieChart>
-            <Pie
-              data={assetTypeData}
-              dataKey="value"
-              nameKey="type"
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={100}
-              paddingAngle={4}
-            >
-              {assetTypeData.map((entry) => (
-                <Cell key={entry.type} fill={entry.fill} />
-              ))}
-            </Pie>
-            <Tooltip
-              formatter={(value) => [`${value} assets`, "Count"]}
-              contentStyle={{ borderRadius: 8 }}
-            />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+        {hasData ? (
+          <ResponsiveContainer width="100%" height={260}>
+            <PieChart>
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="label"
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={100}
+                paddingAngle={4}
+              >
+                {data.map((entry, index) => (
+                  <Cell
+                    key={entry.label}
+                    fill={COLOR_TOKENS[index % COLOR_TOKENS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value) => [`${value} assets`, "Count"]}
+                contentStyle={{ borderRadius: 8 }}
+              />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="text-center text-sm text-muted-foreground">
+            No category distribution available.
+          </div>
+        )}
       </CardContent>
       <Separator className="my-4" />
       <CardFooter className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-        {assetTypeData.slice(0, 4).map((item) => (
-          <div key={item.type} className="flex items-center gap-2">
-            <span
-              className="inline-block size-2 rounded-full"
-              style={{ background: item.fill }}
-            />
-            {item.type}: {item.value}
-          </div>
-        ))}
+        {hasData ? (
+          data.slice(0, 4).map((item, index) => (
+            <div key={item.label} className="flex items-center gap-2">
+              <span
+                className="inline-block size-2 rounded-full"
+                style={{ background: COLOR_TOKENS[index % COLOR_TOKENS.length] }}
+              />
+              {item.label}: {item.value}
+            </div>
+          ))
+        ) : (
+          <div className="col-span-2 text-center">Add assets to see category insights.</div>
+        )}
       </CardFooter>
     </Card>
   );
