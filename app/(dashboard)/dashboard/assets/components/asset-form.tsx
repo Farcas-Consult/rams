@@ -30,6 +30,22 @@ type AssetFormProps = {
   initialData?: AssetResponse | null;
 };
 
+const ORIGIN_OPTIONS = ["inventory", "import", "discovered"] as const;
+const DISCOVERY_STATUS_OPTIONS = [
+  "catalogued",
+  "pending_review",
+  "undiscovered",
+] as const;
+
+const isOriginValue = (value: unknown): value is AssetFormValues["origin"] =>
+  typeof value === "string" && ORIGIN_OPTIONS.includes(value as (typeof ORIGIN_OPTIONS)[number]);
+
+const isDiscoveryStatusValue = (
+  value: unknown,
+): value is AssetFormValues["discoveryStatus"] =>
+  typeof value === "string" &&
+  DISCOVERY_STATUS_OPTIONS.includes(value as (typeof DISCOVERY_STATUS_OPTIONS)[number]);
+
 const formatDateInput = (value?: string | Date | null) => {
   if (!value) return "";
   const date = typeof value === "string" ? new Date(value) : value;
@@ -84,8 +100,10 @@ export function AssetForm({ mode, initialData }: AssetFormProps) {
       objectType: initialData?.objectType ?? "",
       costCtr: initialData?.costCtr ?? "",
       comment: initialData?.comment ?? "",
-      origin: initialData?.origin ?? "inventory",
-      discoveryStatus: initialData?.discoveryStatus ?? "catalogued",
+      origin: isOriginValue(initialData?.origin) ? initialData?.origin : "inventory",
+      discoveryStatus: isDiscoveryStatusValue(initialData?.discoveryStatus)
+        ? initialData?.discoveryStatus
+        : "catalogued",
       discoveryNotes: initialData?.discoveryNotes ?? "",
       discoveredAt: formatDateInput(initialData?.discoveredAt),
       isDecommissioned: initialData?.isDecommissioned ?? false,
@@ -136,8 +154,8 @@ export function AssetForm({ mode, initialData }: AssetFormProps) {
       objectType: trimString(values.objectType),
       costCtr: trimString(values.costCtr),
       comment: trimString(values.comment),
-      origin: trimString(values.origin),
-      discoveryStatus: trimString(values.discoveryStatus),
+      origin: values.origin,
+      discoveryStatus: values.discoveryStatus,
       discoveryNotes: trimString(values.discoveryNotes),
       discoveredAt: values.discoveredAt || undefined,
       isDecommissioned: values.isDecommissioned ?? false,
