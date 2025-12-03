@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { eq, desc } from "drizzle-orm";
 
 import { db } from "@/db";
 import { asset, assetPresence } from "@/db/schema";
@@ -20,8 +21,8 @@ export async function GET() {
       status: asset.status,
     })
     .from(assetPresence)
-    .innerJoin(asset, (join) => join.on(asset.id.eq(assetPresence.assetId)))
-    .orderBy(assetPresence.lastSeenAt.desc());
+    .innerJoin(asset, eq(asset.id, assetPresence.assetId))
+    .orderBy(desc(assetPresence.lastSeenAt));
 
   return NextResponse.json(rows);
 }
