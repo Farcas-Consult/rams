@@ -195,6 +195,48 @@ export const undiscoveredAsset = pgTable("undiscovered_asset", {
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull(),
 });
 
+export const rfidTag = pgTable(
+  "rfid_tag",
+  {
+    id: text("id").primaryKey(),
+    epc: text("epc").notNull(),
+    assetId: text("asset_id")
+      .notNull()
+      .references(() => asset.id, { onDelete: "cascade" }),
+    position: text("position"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+  },
+  (table) => ({
+    epcIdx: uniqueIndex("rfid_tag_epc_key").on(table.epc),
+  })
+);
+
+export const readerEvent = pgTable("reader_event", {
+  id: text("id").primaryKey(),
+  epc: text("epc").notNull(),
+  readerId: text("reader_id"),
+  antenna: text("antenna"),
+  gate: text("gate"),
+  direction: text("direction"),
+  seenAt: timestamp("seen_at", { mode: "date" }).notNull(),
+  assetId: text("asset_id").references(() => asset.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+});
+
+export const assetPresence = pgTable("asset_presence", {
+  assetId: text("asset_id")
+    .primaryKey()
+    .references(() => asset.id, { onDelete: "cascade" }),
+  lastSeenEpc: text("last_seen_epc").notNull(),
+  lastSeenAt: timestamp("last_seen_at", { mode: "date" }).notNull(),
+  lastSeenReaderId: text("last_seen_reader_id"),
+  lastSeenGate: text("last_seen_gate"),
+  lastSeenDirection: text("last_seen_direction"),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+});
+
 export const userRelations = relations(user, ({ many }) => ({
   accounts: many(account),
   sessions: many(session),
@@ -228,6 +270,20 @@ export const undiscoveredAssetRelations = relations(
   })
 );
 
+export const rfidTagRelations = relations(rfidTag, ({ one }) => ({
+  asset: one(asset, {
+    fields: [rfidTag.assetId],
+    references: [asset.id],
+  }),
+}));
+
+export const readerEventRelations = relations(readerEvent, ({ one }) => ({
+  asset: one(asset, {
+    fields: [readerEvent.assetId],
+    references: [asset.id],
+  }),
+}));
+
 export const schema = {
   user,
   account,
@@ -235,8 +291,13 @@ export const schema = {
   verification,
   asset,
   undiscoveredAsset,
+  rfidTag,
+  readerEvent,
+  assetPresence,
 };
 
 export type User = InferSelectModel<typeof user>;
 export type Asset = InferSelectModel<typeof asset>;
 export type UndiscoveredAsset = InferSelectModel<typeof undiscoveredAsset>;
+export type RfidTag = InferSelectModel<typeof rfidTag>;
+export type ReaderEvent = InferSelectModel<typeof readerEvent>;
