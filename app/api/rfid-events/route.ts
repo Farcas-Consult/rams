@@ -29,6 +29,9 @@ export async function POST(req: Request) {
 
     const { epc, timestamp, readerId, antenna, gate, direction } = parsed.data;
 
+    // Default direction to "in" if not provided
+    const eventDirection = direction ?? "in";
+
     const seenAt =
       timestamp instanceof Date
         ? timestamp
@@ -52,7 +55,7 @@ export async function POST(req: Request) {
       readerId,
       antenna,
       gate,
-      direction,
+      direction: eventDirection,
       seenAt,
       assetId,
       createdAt: new Date(),
@@ -68,7 +71,7 @@ export async function POST(req: Request) {
           lastSeenAt: seenAt,
           lastSeenReaderId: readerId,
           lastSeenGate: gate,
-          lastSeenDirection: direction,
+          lastSeenDirection: eventDirection,
           updatedAt: new Date(),
         })
         .onConflictDoUpdate({
@@ -78,7 +81,7 @@ export async function POST(req: Request) {
             lastSeenAt: seenAt,
             lastSeenReaderId: readerId,
             lastSeenGate: gate,
-            lastSeenDirection: direction,
+            lastSeenDirection: eventDirection,
             updatedAt: new Date(),
           },
         });

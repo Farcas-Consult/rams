@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +29,7 @@ type AssetFormValues = z.infer<typeof createAssetSchema>;
 type AssetFormProps = {
   mode: "create" | "edit";
   initialData?: AssetResponse | null;
+  epc?: string;
 };
 
 const ORIGIN_OPTIONS = ["inventory", "import", "discovered"] as const;
@@ -53,7 +55,7 @@ const formatDateInput = (value?: string | Date | null) => {
   return date.toISOString().split("T")[0] ?? "";
 };
 
-export function AssetForm({ mode, initialData }: AssetFormProps) {
+export function AssetForm({ mode, initialData, epc }: AssetFormProps) {
   const router = useRouter();
   const {
     mutateAsync: createAsset,
@@ -172,7 +174,34 @@ export function AssetForm({ mode, initialData }: AssetFormProps) {
     }
 
     if (mode === "create") {
-      await createAsset(payload);
+      const createdAsset = await createAsset(payload);
+      
+      // If EPC is provided, assign it to the newly created asset
+      if (epc && createdAsset?.id) {
+        try {
+          const response = await fetch("/api/rfid-tags", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              epc,
+              assetId: createdAsset.id,
+            }),
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Failed to assign EPC to asset");
+          }
+
+          // Show success message for tag assignment
+          toast.success("Asset created and EPC assigned successfully");
+        } catch (error) {
+          console.error("Failed to assign EPC:", error);
+          toast.error(
+            `Asset created but failed to assign EPC: ${error instanceof Error ? error.message : "Unknown error"}`
+          );
+        }
+      }
     } else if (initialData?.id) {
       await updateAsset({
         id: initialData.id,

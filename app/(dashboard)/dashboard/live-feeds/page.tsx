@@ -2,8 +2,10 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -24,7 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 type LiveFeedRow = {
-  assetId: number;
+  assetId: string | null;
   lastSeenEpc: string | null;
   lastSeenAt: string;
   lastSeenReaderId: string | null;
@@ -100,6 +102,7 @@ const statusColorMap: Record<string, string> = {
 };
 
 export default function LiveFeedsPage() {
+  const router = useRouter();
   const { data, isLoading, isError } = useLiveFeed();
 
   const [gate, setGate] = React.useState<string>("all");
@@ -281,13 +284,14 @@ export default function LiveFeedsPage() {
                     <TableHead>Location</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredRows.map((row) => (
-                    <TableRow key={`${row.assetId}-${row.lastSeenAt}`}>
+                    <TableRow key={`${row.assetId ?? row.lastSeenEpc}-${row.lastSeenAt}`}>
                       <TableCell className="max-w-[180px] truncate">
-                        {row.assetName ?? row.equipment ?? "-"}
+                        {row.assetName ?? row.equipment ?? (row.assetId ? "-" : "Unknown Asset")}
                       </TableCell>
                       <TableCell className="font-mono text-xs">
                         {row.lastSeenEpc ?? "—"}
@@ -298,7 +302,11 @@ export default function LiveFeedsPage() {
                         </span>
                       </TableCell>
                       <TableCell>{row.lastSeenGate ?? "—"}</TableCell>
-                      <TableCell>{row.lastSeenDirection ?? "—"}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {row.lastSeenDirection ?? "in"}
+                        </Badge>
+                      </TableCell>
                       <TableCell>{row.location ?? "—"}</TableCell>
                       <TableCell>{row.category ?? "—"}</TableCell>
                       <TableCell>
@@ -317,6 +325,21 @@ export default function LiveFeedsPage() {
                           <span className="text-xs text-muted-foreground">
                             —
                           </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {!row.assetId && row.lastSeenEpc ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              router.push(`/dashboard/assets/new?epc=${encodeURIComponent(row.lastSeenEpc!)}`);
+                            }}
+                          >
+                            Add Asset
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
                         )}
                       </TableCell>
                     </TableRow>

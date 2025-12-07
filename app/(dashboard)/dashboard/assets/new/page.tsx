@@ -1,3 +1,6 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -8,6 +11,9 @@ import {
 import { AssetForm } from "../components/asset-form";
 
 export default function NewAssetPage() {
+  const searchParams = useSearchParams();
+  const epc = searchParams.get("epc");
+
   return (
     <div className="space-y-6 px-4 pb-10 pt-4 lg:px-6">
       <div>
@@ -15,6 +21,11 @@ export default function NewAssetPage() {
         <p className="text-muted-foreground">
           Register a new asset in the RAMS inventory. All fields are editable
           later.
+          {epc && (
+            <span className="block mt-1 text-sm font-medium">
+              EPC: <span className="font-mono">{epc}</span>
+            </span>
+          )}
         </p>
       </div>
 
@@ -26,7 +37,7 @@ export default function NewAssetPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <AssetForm mode="create" />
+          <AssetForm mode="create" epc={epc ?? undefined} />
         </CardContent>
       </Card>
     </div>
