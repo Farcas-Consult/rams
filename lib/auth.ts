@@ -27,7 +27,8 @@ export const auth = betterAuth({
   ],
   trustedOrigins: [
     "http://localhost:3000",
-    'http://192.168.8.5:3000'
+    'http://192.168.8.5:3000',
+    "https://rams-coral.vercel.app"
   ],
   database: drizzleAdapter(db, {
     provider: "pg",
