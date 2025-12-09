@@ -16,6 +16,7 @@ type RouteParams = {
 
 const associateTagSchema = z.object({
   rfidTag: z.string().min(1, "rfidTag is required"),
+  locationId: z.string().optional(),
 });
 
 // GET /api/assets/:id/rfid-tags
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const { rfidTag: epc } = parsed.data;
+    const { rfidTag: epc, locationId } = parsed.data;
 
     // Verify asset exists
     const assetRecord = await db.query.asset.findFirst({
@@ -96,7 +97,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       createdAt: new Date(),
     });
 
-    return NextResponse.json({ rfidTag: epc }, { status: 201 });
+    // Update asset location if locationId is provided
+    if (locationId) {
+      await db
+        .update(asset)
+        .set({
+          location: locationId,
+          updatedAt: new Date(),
+        })
+        .where(eq(asset.id, id));
+    }
+
+    return NextResponse.json(
+      {
+        rfidTag: epc,
+        ...(locationId && { locationId }),
+      },
+      { status: 201 }
+    );
   } catch (error) {
     return handleApiError(error);
   }

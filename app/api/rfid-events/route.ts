@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { assetPresence, readerEvent, rfidTag } from "@/db/schema";
+import { asset, assetPresence, readerEvent, rfidTag } from "@/db/schema";
 
 const inboundEventSchema = z.object({
   epc: z.string().min(1, "epc is required"),
@@ -11,6 +12,7 @@ const inboundEventSchema = z.object({
   antenna: z.string().optional(),
   gate: z.string().optional(),
   direction: z.string().optional(),
+  locationId: z.string().optional(),
 });
 
 export type InboundRfidEvent = z.infer<typeof inboundEventSchema>;
@@ -27,7 +29,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { epc, timestamp, readerId, antenna, gate, direction } = parsed.data;
+    const { epc, timestamp, readerId, antenna, gate, direction, locationId } = parsed.data;
 
     // Default direction to "in" if not provided
     const eventDirection = direction ?? "in";
@@ -85,12 +87,24 @@ export async function POST(req: Request) {
             updatedAt: new Date(),
           },
         });
+
+      // 4) Update asset location if locationId is provided
+      if (locationId) {
+        await db
+          .update(asset)
+          .set({
+            location: locationId,
+            updatedAt: new Date(),
+          })
+          .where(eq(asset.id, assetId));
+      }
     }
 
     return NextResponse.json(
       {
         ok: true,
         assetId,
+        ...(locationId && { locationId }),
       },
       { status: 202 }
     );
