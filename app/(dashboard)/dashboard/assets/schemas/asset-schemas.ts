@@ -171,6 +171,7 @@ export const assetResponseSchema = z.object({
   discoveryNotes: z.string().optional(),
   decommissionedAt: z.date().or(z.string()).optional(),
   decommissionReason: z.string().optional(),
+  rfidTags: z.array(z.string()).optional(),
 });
 
 /**

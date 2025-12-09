@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
     const undiscoveredResponses = undiscoveredRows.map(serializeUndiscoveredAsset);
 
     return NextResponse.json({
-      assets: records.map(serializeAsset),
+      assets: records.map((row) => serializeAsset(row)),
       undiscoveredAssets: undiscoveredResponses,
       total,
       page,

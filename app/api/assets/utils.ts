@@ -4,7 +4,7 @@ import type { AssetResponse } from "@/app/(dashboard)/dashboard/assets/schemas/a
 export type AssetRow = typeof asset.$inferSelect;
 export type UndiscoveredRow = typeof undiscoveredAsset.$inferSelect;
 
-export const serializeAsset = (row: AssetRow): AssetResponse => ({
+export const serializeAsset = (row: AssetRow, rfidTags?: string[]): AssetResponse => ({
   id: row.id,
   plnt: row.plnt ?? undefined,
   equipment: row.equipment ?? undefined,
@@ -48,6 +48,7 @@ export const serializeAsset = (row: AssetRow): AssetResponse => ({
   isDecommissioned: row.isDecommissioned ?? false,
   decommissionedAt: row.decommissionedAt ?? undefined,
   decommissionReason: row.decommissionReason ?? undefined,
+  rfidTags: rfidTags,
 });
 
 const getString = (payload: Record<string, unknown>, key: string) =>

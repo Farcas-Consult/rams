@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { asset } from "@/db/schema";
+import { asset, rfidTag } from "@/db/schema";
 import {
   updateAssetSchema,
 } from "@/app/(dashboard)/dashboard/assets/schemas/asset-schemas";
@@ -25,7 +25,15 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Asset not found" }, { status: 404 });
     }
 
-    return NextResponse.json(serializeAsset(record));
+    // Fetch RFID tags for this asset
+    const tags = await db
+      .select({ epc: rfidTag.epc })
+      .from(rfidTag)
+      .where(eq(rfidTag.assetId, id));
+    
+    const rfidTags = tags.map((tag) => tag.epc);
+
+    return NextResponse.json(serializeAsset(record, rfidTags));
   } catch (error) {
     console.error("Failed to fetch asset", error);
     return NextResponse.json({ error: "Failed to fetch asset" }, { status: 500 });
@@ -150,11 +158,22 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .set(updatedValues)
       .where(eq(asset.id, targetId));
 
+    // Fetch RFID tags for the updated asset
+    const tags = await db
+      .select({ epc: rfidTag.epc })
+      .from(rfidTag)
+      .where(eq(rfidTag.assetId, targetId));
+    
+    const rfidTags = tags.map((tag) => tag.epc);
+
     return NextResponse.json(
-      serializeAsset({
-        ...existing,
-        ...updatedValues,
-      })
+      serializeAsset(
+        {
+          ...existing,
+          ...updatedValues,
+        },
+        rfidTags
+      )
     );
   } catch (error) {
     console.error("Failed to update asset", error);
