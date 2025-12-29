@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     const { epc, timestamp, readerId, antenna, gate, direction, locationId } = parsed.data;
 
     // Default direction to "in" if not provided
-    const eventDirection = direction ?? "in";
+    const eventDirection = direction ?? "IN";
 
     const seenAt =
       timestamp instanceof Date

@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Eye, Trash2, Compass, PowerOff } from "lucide-react";
+import { MoreHorizontal, Eye, Trash2, PowerOff } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -161,17 +161,7 @@ export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
                       Delete Asset
                     </DropdownMenuItem>
                   </>
-                ) : (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard/assets/new" className="cursor-pointer">
-                        <Compass className="mr-2 h-4 w-4" />
-                        Catalog Asset
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
+                ) : null}
               </DropdownMenuContent>
             </DropdownMenu>
             <DeleteAssetDialog

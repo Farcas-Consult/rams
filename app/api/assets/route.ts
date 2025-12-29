@@ -122,95 +122,13 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const payload = await request.json();
-    const parsed = createAssetSchema.safeParse(payload);
-
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid asset payload", details: parsed.error.format() },
-        { status: 400 }
-      );
-    }
-
-    const now = new Date();
-
-    const origin =
-      parsed.data.origin && ["inventory", "import", "discovered"].includes(parsed.data.origin)
-        ? parsed.data.origin
-        : "inventory";
-
-    const discoveryStatus =
-      parsed.data.discoveryStatus &&
-      ["catalogued", "pending_review", "undiscovered"].includes(parsed.data.discoveryStatus)
-        ? parsed.data.discoveryStatus
-        : "catalogued";
-    const newAsset = {
-      id: randomUUID(),
-      plnt: parsed.data.plnt ?? null,
-      equipment: parsed.data.equipment ?? parsed.data.assetTag ?? null,
-      material: parsed.data.material ?? null,
-      materialDescription: parsed.data.materialDescription ?? null,
-      techIdentNo: parsed.data.techIdentNo ?? null,
-      assetTag: parsed.data.assetTag ?? parsed.data.equipment ?? null,
-      assetName: parsed.data.assetName,
-      category: parsed.data.category ?? null,
-      location: parsed.data.location ?? null,
-      status: parsed.data.status ?? null,
-      assignedTo: parsed.data.assignedTo ?? null,
-      purchaseDate: parsed.data.purchaseDate ? new Date(parsed.data.purchaseDate) : null,
-      purchasePrice: parsed.data.purchasePrice
-        ? String(parsed.data.purchasePrice)
-        : parsed.data.acquistnValue
-          ? String(parsed.data.acquistnValue)
-          : null,
-      serialNumber: parsed.data.serialNumber ?? parsed.data.manufSerialNumber ?? null,
-      manufacturer: parsed.data.manufacturer ?? null,
-      model: parsed.data.model ?? null,
-      description: parsed.data.description ?? parsed.data.materialDescription ?? null,
-      manufSerialNumber: parsed.data.manufSerialNumber ?? null,
-      sysStatus: parsed.data.sysStatus ?? null,
-      userStatusRaw: parsed.data.userStatusRaw ?? null,
-      sLoc: parsed.data.sLoc ?? null,
-      pfUserAc: parsed.data.pfUserAc ?? null,
-      pfUserAccountableDescription: parsed.data.pfUserAccountableDescription ?? null,
-      pfPropMg: parsed.data.pfPropMg ?? null,
-      pfPropMgmFocalPointDescription: parsed.data.pfPropMgmFocalPointDescription ?? null,
-      functionalLoc: parsed.data.functionalLoc ?? null,
-      functionalLocDescription: parsed.data.functionalLocDescription ?? null,
-      aGrp: parsed.data.aGrp ?? null,
-      busA: parsed.data.busA ?? null,
-      objectType: parsed.data.objectType ?? null,
-      costCtr: parsed.data.costCtr ?? null,
-      acquistnValue: parsed.data.acquistnValue ? String(parsed.data.acquistnValue) : null,
-      comment: parsed.data.comment ?? null,
-      origin,
-      discoveryStatus,
-      discoveredAt: parsed.data.discoveredAt ? new Date(parsed.data.discoveredAt) : null,
-      discoveryNotes: parsed.data.discoveryNotes ?? null,
-      isDecommissioned:
-        parsed.data.isDecommissioned ?? parsed.data.status === "Decommissioned",
-      decommissionedAt:
-        parsed.data.decommissionedAt
-          ? new Date(parsed.data.decommissionedAt)
-          : parsed.data.isDecommissioned || parsed.data.status === "Decommissioned"
-            ? now
-            : null,
-      decommissionReason: parsed.data.decommissionReason ?? null,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    await db.insert(asset).values(newAsset);
-
-    return NextResponse.json(serializeAsset(newAsset));
-  } catch (error) {
-    console.error("Failed to create asset", error);
-    return NextResponse.json(
-      { error: "Failed to create asset" },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(
+    {
+      error: "Manual asset creation is disabled",
+      message: "Assets can only be created through Excel import. Please use the /api/assets/import endpoint to import assets from an Excel file.",
+    },
+    { status: 403 }
+  );
 }
 
 

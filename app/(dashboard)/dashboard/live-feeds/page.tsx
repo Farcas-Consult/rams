@@ -2,10 +2,8 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -102,7 +100,6 @@ const statusColorMap: Record<string, string> = {
 };
 
 export default function LiveFeedsPage() {
-  const router = useRouter();
   const { data, isLoading, isError } = useLiveFeed();
 
   const [gate, setGate] = React.useState<string>("all");
@@ -328,19 +325,7 @@ export default function LiveFeedsPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {!row.assetId && row.lastSeenEpc ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              router.push(`/dashboard/assets/new?epc=${encodeURIComponent(row.lastSeenEpc!)}`);
-                            }}
-                          >
-                            Add Asset
-                          </Button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
+                        <span className="text-xs text-muted-foreground">—</span>
                       </TableCell>
                     </TableRow>
                   ))}

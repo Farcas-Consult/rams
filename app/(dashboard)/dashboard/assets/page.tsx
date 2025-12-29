@@ -9,8 +9,7 @@ import { ImportAssetsDialog } from "./components/import-assets-dialog";
 import { AssetQuery } from "./schemas/asset-schemas";
 import { TransformedAsset } from "./types/asset-types";
 import { Button } from "@/components/ui/button";
-import { IconPlus, IconUpload } from "@tabler/icons-react";
-import Link from "next/link";
+import { IconUpload } from "@tabler/icons-react";
 
 export default function AssetsPage() {
   const [pagination, setPagination] = useState({
@@ -67,12 +66,6 @@ export default function AssetsPage() {
             <IconUpload className="mr-2 size-4" />
             Import Excel
           </Button>
-          <Button asChild>
-            <Link href="/dashboard/assets/new">
-              <IconPlus className="mr-2 size-4" />
-              Add Asset
-            </Link>
-          </Button>
         </div>
       </div>
 
@@ -109,12 +102,7 @@ export default function AssetsPage() {
             tableType="assets"
             withFilters={true}
             withPagination={true}
-            initialSorting={[
-              {
-                id: "createdAt",
-                desc: true,
-              },
-            ]}
+            initialSorting={[]}
           />
         )}
       </div>
