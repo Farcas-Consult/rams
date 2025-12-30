@@ -32,6 +32,7 @@ type MappableField = keyof CreateAssetInput;
 const HEADER_MAPPINGS: Record<MappableField, string[]> = {
   plnt: ["Plnt"],
   equipment: ["Equipment", "Equip No.", "Equipment No."],
+  assetNumber: ["Asset Number", "Equipment", "Equip No.", "Equipment No."],
   material: ["Material", "Material Num."],
   materialDescription: ["Material Description", "Material Desc."],
   techIdentNo: ["TechIdentNo.", "Technical Num.", "Tech Ident No."],
@@ -43,7 +44,15 @@ const HEADER_MAPPINGS: Record<MappableField, string[]> = {
     "Material Desc.",
     "Technical Desc.",
   ],
+  name: [
+    "Name",
+    "Asset Name",
+    "Description",
+    "Material Description",
+    "Material Desc.",
+  ],
   assetTag: ["Asset Tag", "Equip No.", "Equipment"],
+  tagIdentifier: ["Tag Identifier", "RFID Tag", "EPC", "Tag"],
   category: [
     "Category",
     "Object Type",
@@ -103,6 +112,7 @@ const HEADER_MAPPINGS: Record<MappableField, string[]> = {
   discoveryNotes: [],
   decommissionedAt: [],
   decommissionReason: [],
+  currentLocationId: ["Current Location ID", "Location ID"],
 };
 
 const normalize = (value?: string | number | null) =>

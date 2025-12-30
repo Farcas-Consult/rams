@@ -2,15 +2,18 @@ import { z } from "zod";
 
 /**
  * Schema for creating a new asset
+ * Based on .NET API requirements: assetNumber and name are required
  */
 export const createAssetSchema = z.object({
   plnt: z.string().optional(),
   equipment: z.string().optional(),
+  assetNumber: z.string().optional(), // .NET API required field (mapped from equipment)
   material: z.string().optional(),
   materialDescription: z.string().optional(),
   techIdentNo: z.string().optional(),
   assetTag: z.string().optional(),
   assetName: z.string().min(1, "Asset name is required"),
+  name: z.string().min(1, "Name is required").optional(), // .NET API required field (mapped from assetName)
   category: z.string().optional(),
   location: z.string().optional(),
   status: z.string().optional(),
@@ -44,6 +47,8 @@ export const createAssetSchema = z.object({
   discoveryNotes: z.string().optional(),
   decommissionedAt: z.string().optional(),
   decommissionReason: z.string().optional(),
+  tagIdentifier: z.string().optional(),
+  currentLocationId: z.number().optional(),
 });
 
 /**
@@ -131,11 +136,13 @@ export const assetResponseSchema = z.object({
   id: z.string(),
   plnt: z.string().optional(),
   equipment: z.string().optional(),
+  assetNumber: z.string().optional(),
   material: z.string().optional(),
   materialDescription: z.string().optional(),
   techIdentNo: z.string().optional(),
   assetTag: z.string().optional(),
   assetName: z.string(),
+  name: z.string().optional(),
   category: z.string().optional(),
   location: z.string().optional(),
   status: z.string().optional(),
@@ -172,6 +179,13 @@ export const assetResponseSchema = z.object({
   decommissionedAt: z.date().or(z.string()).optional(),
   decommissionReason: z.string().optional(),
   rfidTags: z.array(z.string()).optional(),
+  tagIdentifier: z.string().optional(),
+  currentLocationId: z.number().optional(),
+  currentLocationName: z.string().optional(),
+  lastDiscoveredAt: z.date().or(z.string()).optional(),
+  lastDiscoveredBy: z.string().optional(),
+  storageLocation: z.string().optional(),
+  costCenter: z.string().optional(),
 });
 
 /**

@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { reportHeaders, type ReportRow } from "../data/report-data";
 import { mapAssetToReportRow } from "../lib/map-asset-to-report";
 import { createAssetReportDataset, type AssetReportDataset } from "../lib/get-asset-report";
-import type { Asset } from "@/db/schema";
+import type { Asset } from "@/app/(dashboard)/dashboard/assets/types/asset-types";
 
 const API_BASE_URL = "/api/reports/assets";
 

@@ -1,9 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { apiClient, ApiError } from "@/lib/api-client";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
-
-import { db } from "@/db";
-import { asset, assetPresence, readerEvent, rfidTag } from "@/db/schema";
+import { handleApiError } from "@/lib/server/errors";
 
 const inboundEventSchema = z.object({
   epc: z.string().min(1, "epc is required"),
@@ -17,7 +15,16 @@ const inboundEventSchema = z.object({
 
 export type InboundRfidEvent = z.infer<typeof inboundEventSchema>;
 
-export async function POST(req: Request) {
+/**
+ * POST /api/rfid-events
+ * 
+ * Note: The .NET API doesn't have a direct endpoint for receiving RFID events.
+ * This endpoint is kept for compatibility but may need to be adapted based on
+ * how the .NET API receives RFID events (possibly through MQTT or another mechanism).
+ * 
+ * For now, this endpoint will attempt to find the asset by tag and update its location.
+ */
+export async function POST(req: NextRequest) {
   try {
     const json = await req.json();
     const parsed = inboundEventSchema.safeParse(json);
@@ -29,92 +36,54 @@ export async function POST(req: Request) {
       );
     }
 
-    const { epc, timestamp, readerId, antenna, gate, direction, locationId } = parsed.data;
+    const { epc, locationId } = parsed.data;
 
-    // Default direction to "in" if not provided
-    const eventDirection = direction ?? "IN";
+    // Try to find asset by tag identifier
+    try {
+      const asset = await apiClient.get<{
+        id: number;
+        tagIdentifier?: string;
+        currentLocationId?: number;
+      }>(`/assets/by-tag/${epc}`);
 
-    const seenAt =
-      timestamp instanceof Date
-        ? timestamp
-        : timestamp
-          ? new Date(timestamp)
-          : new Date();
-
-    // 1) Resolve EPC -> asset
-    const tag = await db.query.rfidTag.findFirst({
-      where: (t, { eq }) => eq(t.epc, epc),
-    });
-
-    const assetId = tag?.assetId ?? null;
-
-    // 2) Store raw reader event
-    const id = crypto.randomUUID();
-
-    await db.insert(readerEvent).values({
-      id,
-      epc,
-      readerId,
-      antenna,
-      gate,
-      direction: eventDirection,
-      seenAt,
-      assetId,
-      createdAt: new Date(),
-    });
-
-    // 3) Update presence if we know the asset
-    if (assetId) {
-      await db
-        .insert(assetPresence)
-        .values({
-          assetId,
-          lastSeenEpc: epc,
-          lastSeenAt: seenAt,
-          lastSeenReaderId: readerId,
-          lastSeenGate: gate,
-          lastSeenDirection: eventDirection,
-          updatedAt: new Date(),
-        })
-        .onConflictDoUpdate({
-          target: assetPresence.assetId,
-          set: {
-            lastSeenEpc: epc,
-            lastSeenAt: seenAt,
-            lastSeenReaderId: readerId,
-            lastSeenGate: gate,
-            lastSeenDirection: eventDirection,
-            updatedAt: new Date(),
-          },
+      // If locationId is provided and asset found, update location
+      if (locationId && asset.currentLocationId !== Number(locationId)) {
+        await apiClient.put(`/assets/${asset.id}`, {
+          currentLocationId: Number(locationId),
         });
-
-      // 4) Update asset location if locationId is provided
-      if (locationId) {
-        await db
-          .update(asset)
-          .set({
-            location: locationId,
-            updatedAt: new Date(),
-          })
-          .where(eq(asset.id, assetId));
       }
-    }
 
-    return NextResponse.json(
-      {
-        ok: true,
-        assetId,
-        ...(locationId && { locationId }),
-      },
-      { status: 202 }
-    );
+      return NextResponse.json(
+        {
+          ok: true,
+          assetId: String(asset.id),
+          ...(locationId && { locationId }),
+        },
+        { status: 202 }
+      );
+    } catch (error) {
+      // Asset not found by tag - this is okay, just return success
+      // The .NET API might handle undiscovered tags differently
+      if (error instanceof ApiError && error.status === 404) {
+        return NextResponse.json(
+          {
+            ok: true,
+            assetId: null,
+            message: "Asset not found for this tag",
+          },
+          { status: 202 }
+        );
+      }
+      throw error;
+    }
   } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { error: "Failed to process RFID event" },
-      { status: 500 }
-    );
+    if (error instanceof ApiError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status || 500 }
+      );
+    }
+    console.error("Failed to process RFID event", error);
+    return handleApiError(error);
   }
 }
-
-

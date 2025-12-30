@@ -1,4 +1,4 @@
-import { Asset } from "@/db/schema";
+import type { Asset } from "@/app/(dashboard)/dashboard/assets/types/asset-types";
 import type { ReportRow } from "../data/report-data";
 
 /**
@@ -16,14 +16,23 @@ export function mapAssetToReportRow(asset: Asset): ReportRow {
   };
 
   // Helper to get numeric value as string
-  // Note: Drizzle numeric fields are returned as strings
+  // Handles both number (from .NET API) and string (from legacy DB) types
   const getNumericValue = (
-    value1: string | null | undefined,
-    value2: string | null | undefined
+    value1: string | number | null | undefined,
+    value2: string | number | null | undefined
   ): string => {
-    // Both acquistnValue and purchasePrice are numeric fields (strings from DB)
-    const val1 = value1?.trim();
-    const val2 = value2?.trim();
+    // Convert to string and trim if it's a string
+    const val1 = typeof value1 === "number" 
+      ? String(value1) 
+      : typeof value1 === "string" 
+        ? value1.trim() 
+        : "";
+    const val2 = typeof value2 === "number" 
+      ? String(value2) 
+      : typeof value2 === "string" 
+        ? value2.trim() 
+        : "";
+    
     if (val1 && val1 !== "") return val1;
     if (val2 && val2 !== "") return val2;
     return "";

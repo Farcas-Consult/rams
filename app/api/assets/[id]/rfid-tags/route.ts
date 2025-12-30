@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { eq } from "drizzle-orm";
-import { randomUUID } from "crypto";
-
-import { db } from "@/db";
-import { asset, rfidTag } from "@/db/schema";
-import { requireRequestUser } from "@/lib/server/authz";
+import { apiClient, ApiError } from "@/lib/api-client";
+import {
+  transformAssetFromDotNet,
+  type DotNetAssetDto,
+} from "@/lib/api-transform";
 import { handleApiError } from "@/lib/server/errors";
+import { z } from "zod";
 
 type RouteParams = {
   params: Promise<{
@@ -14,37 +13,35 @@ type RouteParams = {
   }>;
 };
 
-const associateTagSchema = z.object({
-  rfidTag: z.string().min(1, "rfidTag is required"),
-  locationId: z.string().optional(),
+const assignTagSchema = z.object({
+  tagIdentifier: z.string().min(1, "tagIdentifier is required"),
 });
 
 // GET /api/assets/:id/rfid-tags
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
-    await requireRequestUser(_request.headers);
-
     const { id } = await params;
 
-    // Verify asset exists
-    const assetRecord = await db.query.asset.findFirst({
-      where: (assets, { eq }) => eq(assets.id, id),
-    });
+    // Get asset from .NET API
+    const dotNetAsset = await apiClient.get<{
+      id: number;
+      tagIdentifier?: string;
+    }>(`/assets/${id}`);
 
-    if (!assetRecord) {
-      return NextResponse.json({ error: "Asset not found" }, { status: 404 });
-    }
-
-    // Fetch RFID tags for this asset
-    const tags = await db
-      .select({ epc: rfidTag.epc })
-      .from(rfidTag)
-      .where(eq(rfidTag.assetId, id));
-
-    const rfidTags = tags.map((tag) => tag.epc);
+    // Extract tagIdentifier
+    const rfidTags = dotNetAsset.tagIdentifier ? [dotNetAsset.tagIdentifier] : [];
 
     return NextResponse.json({ rfidTags });
   } catch (error) {
+    if (error instanceof ApiError) {
+      if (error.status === 404) {
+        return NextResponse.json({ error: "Asset not found" }, { status: 404 });
+      }
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status || 500 }
+      );
+    }
     return handleApiError(error);
   }
 }
@@ -52,11 +49,9 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 // POST /api/assets/:id/rfid-tags
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    await requireRequestUser(request.headers);
-
     const { id } = await params;
     const payload = await request.json();
-    const parsed = associateTagSchema.safeParse(payload);
+    const parsed = assignTagSchema.safeParse(payload);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -65,57 +60,34 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const { rfidTag: epc, locationId } = parsed.data;
+    const { tagIdentifier } = parsed.data;
 
-    // Verify asset exists
-    const assetRecord = await db.query.asset.findFirst({
-      where: (assets, { eq }) => eq(assets.id, id),
-    });
+    // Call .NET API to assign tag
+    // According to API docs, this returns a full AssetDto
+    const dotNetAsset = await apiClient.post<DotNetAssetDto>(
+      `/assets/${id}/assign-tag`,
+      { tagIdentifier }
+    );
 
-    if (!assetRecord) {
-      return NextResponse.json({ error: "Asset not found" }, { status: 404 });
-    }
-
-    // Check if tag is already associated with another asset
-    const existingTag = await db.query.rfidTag.findFirst({
-      where: (tags, { eq }) => eq(tags.epc, epc),
-    });
-
-    if (existingTag) {
-      return NextResponse.json(
-        { error: "RFID tag is already associated with another asset" },
-        { status: 409 }
-      );
-    }
-
-    // Create the association
-    const tagId = randomUUID();
-    await db.insert(rfidTag).values({
-      id: tagId,
-      epc,
-      assetId: id,
-      createdAt: new Date(),
-    });
-
-    // Update asset location if locationId is provided
-    if (locationId) {
-      await db
-        .update(asset)
-        .set({
-          location: locationId,
-          updatedAt: new Date(),
-        })
-        .where(eq(asset.id, id));
-    }
+    // Transform response
+    const transformedAsset = transformAssetFromDotNet(dotNetAsset);
 
     return NextResponse.json(
       {
-        rfidTag: epc,
-        ...(locationId && { locationId }),
+        rfidTag: transformedAsset.tagIdentifier,
       },
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof ApiError) {
+      if (error.status === 404) {
+        return NextResponse.json({ error: "Asset not found" }, { status: 404 });
+      }
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status || 500 }
+      );
+    }
     return handleApiError(error);
   }
 }
@@ -123,33 +95,30 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/assets/:id/rfid-tags
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   try {
-    await requireRequestUser(_request.headers);
-
     const { id } = await params;
 
-    // Verify asset exists
-    const assetRecord = await db.query.asset.findFirst({
-      where: (assets, { eq }) => eq(assets.id, id),
-    });
+    // Get asset first to get tagIdentifier
+    const dotNetAsset = await apiClient.get<{
+      id: number;
+      tagIdentifier?: string;
+    }>(`/assets/${id}`);
 
-    if (!assetRecord) {
-      return NextResponse.json({ error: "Asset not found" }, { status: 404 });
-    }
+    const removedTag = dotNetAsset.tagIdentifier;
 
-    // Get all tags before deletion
-    const tags = await db
-      .select({ epc: rfidTag.epc })
-      .from(rfidTag)
-      .where(eq(rfidTag.assetId, id));
+    // Call .NET API to unassign tag
+    await apiClient.post(`/assets/${id}/unassign-tag`);
 
-    const removedTags = tags.map((tag) => tag.epc);
-
-    // Delete all tags for this asset
-    await db.delete(rfidTag).where(eq(rfidTag.assetId, id));
-
-    return NextResponse.json({ removed: removedTags }, { status: 200 });
+    return NextResponse.json({ removed: removedTag ? [removedTag] : [] }, { status: 200 });
   } catch (error) {
+    if (error instanceof ApiError) {
+      if (error.status === 404) {
+        return NextResponse.json({ error: "Asset not found" }, { status: 404 });
+      }
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status || 500 }
+      );
+    }
     return handleApiError(error);
   }
 }
-

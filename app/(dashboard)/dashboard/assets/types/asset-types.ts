@@ -1,6 +1,6 @@
 /**
  * Asset type definition
- * Based on common asset management fields - adjust based on your Excel structure
+ * Based on .NET API AssetDto structure, with backward compatibility for frontend fields
  */
 export type Asset = {
   id: string;
@@ -11,6 +11,8 @@ export type Asset = {
   techIdentNo?: string;
   assetTag?: string;
   assetName: string;
+  name?: string; // .NET API field
+  assetNumber?: string; // .NET API field
   category?: string;
   location?: string;
   status?: string;
@@ -46,6 +48,15 @@ export type Asset = {
   isDecommissioned?: boolean;
   decommissionedAt?: Date | string;
   decommissionReason?: string;
+  // .NET API specific fields
+  tagIdentifier?: string;
+  rfidTags?: string[];
+  currentLocationId?: number;
+  currentLocationName?: string;
+  lastDiscoveredAt?: Date | string;
+  lastDiscoveredBy?: string;
+  storageLocation?: string;
+  costCenter?: string;
 };
 
 /**

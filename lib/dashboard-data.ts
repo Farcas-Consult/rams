@@ -1,7 +1,5 @@
-import { eq, sql } from "drizzle-orm";
-
-import { db } from "@/db";
-import { asset } from "@/db/schema";
+import { apiClient } from "@/lib/api-client";
+import { transformAssetFromDotNet } from "@/lib/api-transform";
 
 const ACTIVE_KEYWORDS = ["active", "operational", "in service", "running", "online"];
 const MAINTENANCE_KEYWORDS = [
@@ -66,83 +64,106 @@ const buildDistribution = (
 };
 
 export async function getDashboardData(): Promise<DashboardData> {
-  const activeAssetsFilter = eq(asset.isDecommissioned, false);
+  try {
+    // Fetch all assets from .NET API (excluding deleted ones)
+    const assets = await apiClient.get<Array<{
+      id: number;
+      assetNumber: string;
+      name: string;
+      status?: string;
+      category?: string;
+      currentLocationName?: string;
+      location?: string;
+      isDeleted: boolean;
+    }>>("/assets", {
+      pageNumber: 1,
+      pageSize: 10000, // Get all assets for dashboard
+      includeDeleted: false,
+    });
 
-  const [totalRows, statusRows, decommissionedRows, categoryRows, locationRows] =
-    await Promise.all([
-      db.select({ count: sql<number>`count(*)` }).from(asset).where(activeAssetsFilter),
-      db
-        .select({
-          status: asset.status,
-          count: sql<number>`count(*)`,
-        })
-        .from(asset)
-        .where(activeAssetsFilter)
-        .groupBy(asset.status),
-      db.select({ count: sql<number>`count(*)` }).from(asset).where(eq(asset.isDecommissioned, true)),
-      db
-        .select({
-          label: asset.category,
-          count: sql<number>`count(*)`,
-        })
-        .from(asset)
-        .where(activeAssetsFilter)
-        .groupBy(asset.category),
-      db
-        .select({
-          label: asset.location,
-          count: sql<number>`count(*)`,
-        })
-        .from(asset)
-        .where(activeAssetsFilter)
-        .groupBy(asset.location),
-    ]);
+    // Filter out deleted assets and transform
+    const activeAssets = assets
+      .filter((a) => !a.isDeleted)
+      .map((a) => ({
+        status: a.status || "",
+        category: a.category || null,
+        location: a.currentLocationName || a.location || null,
+        isDecommissioned: a.isDeleted,
+      }));
 
-  const totalAssets = Number(totalRows[0]?.count ?? 0);
-  const statusCounts = statusRows.map((row) => ({
-    status: normalizeStatus(row.status),
-    count: Number(row.count ?? 0),
-  }));
+    const totalAssets = activeAssets.length;
 
-  const assetsInService = statusCounts
-    .filter((row) => matchesKeyword(row.status, ACTIVE_KEYWORDS))
-    .reduce((sum, row) => sum + row.count, 0);
+    // Count by status
+    const statusCounts = activeAssets.reduce((acc, asset) => {
+      const status = normalizeStatus(asset.status);
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
 
-  const maintenanceAssets = statusCounts
-    .filter((row) => matchesKeyword(row.status, MAINTENANCE_KEYWORDS))
-    .reduce((sum, row) => sum + row.count, 0);
+    const assetsInService = Object.entries(statusCounts)
+      .filter(([status]) => matchesKeyword(status, ACTIVE_KEYWORDS))
+      .reduce((sum, [, count]) => sum + count, 0);
 
-  const decommissionedAssets = Number(decommissionedRows[0]?.count ?? 0);
-  const downtimeCount = Math.max(0, totalAssets - assetsInService);
-  const uptimePct = totalAssets > 0 ? Math.round((assetsInService / totalAssets) * 100) : 0;
+    const maintenanceAssets = Object.entries(statusCounts)
+      .filter(([status]) => matchesKeyword(status, MAINTENANCE_KEYWORDS))
+      .reduce((sum, [, count]) => sum + count, 0);
 
-  return {
-    kpis: {
-      totalAssets,
-      assetsInService,
-      maintenanceAssets,
-      decommissionedAssets,
-    },
-    uptime: {
-      activeCount: assetsInService,
-      downtimeCount,
-      uptimePct,
-    },
-    typeDistribution: buildDistribution(
-      categoryRows.map((row) => ({
-        label: row.label,
-        count: Number(row.count ?? 0),
-      })),
-      5
-    ),
-    locationDistribution: buildDistribution(
-      locationRows.map((row) => ({
-        label: row.label,
-        count: Number(row.count ?? 0),
-      })),
-      6
-    ),
-  };
+    const decommissionedAssets = activeAssets.filter((a) => a.isDecommissioned).length;
+    const downtimeCount = Math.max(0, totalAssets - assetsInService);
+    const uptimePct = totalAssets > 0 ? Math.round((assetsInService / totalAssets) * 100) : 0;
+
+    // Count by category
+    const categoryCounts = activeAssets.reduce((acc, asset) => {
+      const category = asset.category || "Unspecified";
+      acc[category] = (acc[category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Count by location
+    const locationCounts = activeAssets.reduce((acc, asset) => {
+      const location = asset.location || "Unspecified";
+      acc[location] = (acc[location] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return {
+      kpis: {
+        totalAssets,
+        assetsInService,
+        maintenanceAssets,
+        decommissionedAssets,
+      },
+      uptime: {
+        activeCount: assetsInService,
+        downtimeCount,
+        uptimePct,
+      },
+      typeDistribution: buildDistribution(
+        Object.entries(categoryCounts).map(([label, count]) => ({ label, count })),
+        5
+      ),
+      locationDistribution: buildDistribution(
+        Object.entries(locationCounts).map(([label, count]) => ({ label, count })),
+        6
+      ),
+    };
+  } catch (error) {
+    console.error("Failed to fetch dashboard data", error);
+    // Return empty data on error
+    return {
+      kpis: {
+        totalAssets: 0,
+        assetsInService: 0,
+        maintenanceAssets: 0,
+        decommissionedAssets: 0,
+      },
+      uptime: {
+        activeCount: 0,
+        downtimeCount: 0,
+        uptimePct: 0,
+      },
+      typeDistribution: [],
+      locationDistribution: [],
+    };
+  }
 }
-
-
