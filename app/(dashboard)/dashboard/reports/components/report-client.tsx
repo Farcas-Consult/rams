@@ -48,7 +48,6 @@ const LABELS = {
   mission: "Mission",
   accessGroup: "Access Group",
   businessArea: "Business Area",
-  acquisitionValue: "Acq. Value (USD)",
 } as const;
 
 const downloadFilename = () =>
@@ -61,14 +60,12 @@ const primaryColumnLabels = [
   "Description (RAMS)",
   "Mission",
   "System status",
-  "Acq. Value (USD)",
 ] as const;
 
 const buildColumnDefs = (
   columns: AssetReportColumn[],
   columnMap: Record<keyof typeof LABELS, string | undefined>
 ): ColumnDef<AssetReportRow>[] => {
-  const currencyKey = columnMap.acquisitionValue;
   return columns
     .filter((column) => primaryColumnLabels.includes(column.label as (typeof primaryColumnLabels)[number]))
     .map((column) => {
@@ -93,17 +90,6 @@ const buildColumnDefs = (
         header: column.label,
         cell: ({ row }) => {
           const value = row.original[column.key];
-          if (currencyKey && column.key === currencyKey) {
-            const amount = Number(value);
-            const formatted = Number.isFinite(amount)
-              ? Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency: "USD",
-                  maximumFractionDigits: 0,
-                }).format(amount)
-              : value;
-            return <span className="font-medium">{formatted || "—"}</span>;
-          }
           return (
             <div className="min-w-[140px] whitespace-pre-wrap text-sm">
               {value?.toString().trim() || "—"}
@@ -251,7 +237,6 @@ export function ReportClient({ columns, rows }: ReportClientProps) {
       <ReportAnalytics
         rows={filteredRows}
         metricKeys={{
-          acquisitionValue: columnMap.acquisitionValue,
           systemStatus: columnMap.systemStatus,
           mission: columnMap.mission,
           direction: columnMap.direction,

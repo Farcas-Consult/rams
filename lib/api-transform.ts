@@ -51,6 +51,7 @@ export interface DotNetAssetMovementDto {
 export interface DotNetAssetStatisticsDto {
   totalAssets: number;
   activeAssets: number;
+  decommissionedAssets: number;
   assetsWithTags: number;
   assetsWithoutTags: number;
   assetsNotSeen30Days: number;
@@ -329,7 +330,7 @@ export function transformStatisticsFromDotNet(
       undiscoveredAssets: stats.assetsNotSeen30Days,
     },
     decommissionStats: {
-      totalDecommissioned: stats.totalAssets - stats.activeAssets,
+      totalDecommissioned: stats.decommissionedAssets,
       readyForRecommission: 0, // Not available in .NET API
       pendingDisposal: 0, // Not available in .NET API
       averageDowntimeDays: 0, // Not available in .NET API

@@ -1,6 +1,6 @@
 "use client";
 
-import { IconTrendingUp, IconPackage } from "@tabler/icons-react";
+import { IconTrendingUp, IconPackage, IconTrash } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -10,16 +10,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useAssetStats } from "../hooks/useAssets";
+import { useAssetStats, useDecommissionStats } from "../hooks/useAssets";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function AssetKPICards() {
   const { data: stats, isLoading } = useAssetStats();
+  const { data: decommissionStats, isLoading: isLoadingDecommission } = useDecommissionStats();
 
-  if (isLoading) {
+  if (isLoading || isLoadingDecommission) {
     return (
-      <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-bl *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2">
-        {[1, 2].map((i) => (
+      <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-bl *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
+        {[1, 2, 3].map((i) => (
           <Card key={i} className="@container/card">
             <CardHeader>
               <Skeleton className="h-4 w-24" />
@@ -37,8 +38,12 @@ export function AssetKPICards() {
     activeAssets = 0,
   } = stats || {};
 
+  const {
+    totalDecommissioned = 0,
+  } = decommissionStats || {};
+
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-bl *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-bl *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
       <Card className="@container/card">
         <CardHeader>
           <CardDescription>Total Assets</CardDescription>
@@ -75,6 +80,26 @@ export function AssetKPICards() {
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
             {activeAssets} currently active <IconTrendingUp className="size-4" />
+          </div>
+        </CardFooter>
+      </Card>
+
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Decommissioned Assets</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            {totalDecommissioned.toLocaleString()}
+          </CardTitle>
+          <CardAction>
+            <Badge variant="outline" className="text-red-600 dark:text-red-400">
+              <IconTrash className="size-3" />
+              Offline
+            </Badge>
+          </CardAction>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            Assets removed from service <IconTrash className="size-4" />
           </div>
         </CardFooter>
       </Card>

@@ -31,7 +31,6 @@ import { AssetReportRow } from "../lib/get-asset-report";
 type ReportAnalyticsProps = {
   rows: AssetReportRow[];
   metricKeys: {
-    acquisitionValue?: string;
     systemStatus?: string;
     mission?: string;
     direction?: string;
@@ -48,10 +47,6 @@ const parseNumber = (value?: string) => {
 };
 
 export function ReportAnalytics({ rows, metricKeys }: ReportAnalyticsProps) {
-  const totalValue = useMemo(
-    () => rows.reduce((sum, row) => sum + parseNumber(metricKeys.acquisitionValue ? row[metricKeys.acquisitionValue] : ""), 0),
-    [rows, metricKeys.acquisitionValue]
-  );
 
   const systemStatusData = useMemo(() => {
     if (!metricKeys.systemStatus) return [];
@@ -108,16 +103,6 @@ export function ReportAnalytics({ rows, metricKeys }: ReportAnalyticsProps) {
         tag: "Inventory",
       },
       {
-        label: "Acq. Value (USD)",
-        value: Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "USD",
-          maximumFractionDigits: 0,
-        }).format(totalValue),
-        subtext: "Aggregated acquisition value",
-        tag: "Book Value",
-      },
-      {
         label: "Unique Missions",
         value: missionData.length.toString(),
         subtext: "Mission codes represented",
@@ -130,7 +115,7 @@ export function ReportAnalytics({ rows, metricKeys }: ReportAnalyticsProps) {
         tag: "Direction",
       },
     ];
-  }, [rows.length, totalValue, missionData.length, directionData]);
+  }, [rows.length, missionData.length, directionData]);
 
   return (
     <div className="space-y-4">
