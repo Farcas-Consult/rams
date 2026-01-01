@@ -308,7 +308,6 @@ export function transformStatisticsFromDotNet(
     totalAssets: number;
     activeAssets: number;
     maintenanceAssets: number;
-    totalValue: number;
     categoriesCount: number;
     locationsCount: number;
     undiscoveredAssets: number;
@@ -325,7 +324,6 @@ export function transformStatisticsFromDotNet(
       totalAssets: stats.totalAssets,
       activeAssets: stats.activeAssets,
       maintenanceAssets: 0, // Not available in .NET API
-      totalValue: 0, // Not available in .NET API
       categoriesCount: 0, // Not available in .NET API
       locationsCount: 0, // Not available in .NET API
       undiscoveredAssets: stats.assetsNotSeen30Days,

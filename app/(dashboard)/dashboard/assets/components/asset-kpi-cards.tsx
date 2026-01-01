@@ -1,6 +1,6 @@
 "use client";
 
-import { IconTrendingUp, IconPackage, IconMapPin, IconCurrencyDollar, IconCategory, IconLoader } from "@tabler/icons-react";
+import { IconTrendingUp, IconPackage } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -18,8 +18,8 @@ export function AssetKPICards() {
 
   if (isLoading) {
     return (
-      <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-bl *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-        {[1, 2, 3, 4].map((i) => (
+      <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-bl *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2">
+        {[1, 2].map((i) => (
           <Card key={i} className="@container/card">
             <CardHeader>
               <Skeleton className="h-4 w-24" />
@@ -35,10 +35,6 @@ export function AssetKPICards() {
   const {
     totalAssets = 0,
     activeAssets = 0,
-    totalValue = 0,
-    categoriesCount = 0,
-    locationsCount = 0,
-    undiscoveredAssets = 0,
   } = stats || {};
 
   return (
@@ -60,9 +56,6 @@ export function AssetKPICards() {
           <div className="line-clamp-1 flex gap-2 font-medium">
             Total assets in system <IconPackage className="size-4" />
           </div>
-          <div className="text-muted-foreground">
-            {activeAssets} currently active
-          </div>
         </CardFooter>
       </Card>
 
@@ -81,81 +74,11 @@ export function AssetKPICards() {
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Currently in use <IconTrendingUp className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            {totalAssets > 0 ? ((activeAssets / totalAssets) * 100).toFixed(1) : 0}% of total
+            {activeAssets} currently active <IconTrendingUp className="size-4" />
           </div>
         </CardFooter>
       </Card>
 
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Total Asset Value</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            ${(totalValue / 1000).toFixed(1)}K
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline" className="text-blue-600 dark:text-blue-400">
-              <IconCurrencyDollar className="size-3" />
-              Value
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Total purchase value <IconCurrencyDollar className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            ${totalValue.toLocaleString()} total
-          </div>
-        </CardFooter>
-      </Card>
-
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Categories</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {categoriesCount}
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconCategory className="size-3" />
-              Types
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Asset categories <IconCategory className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Across {locationsCount} locations
-          </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>Undiscovered Assets</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {undiscoveredAssets}
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline" className="text-blue-600 dark:text-blue-400">
-              <IconLoader className="size-3" />
-              Pending
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Awaiting cataloguing <IconLoader className="size-4 animate-spin" />
-          </div>
-          <div className="text-muted-foreground">
-            Assets discovered in the field but not yet imported
-          </div>
-        </CardFooter>
-      </Card>
     </div>
   );
 }
