@@ -2,8 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Eye, Trash2, PowerOff } from "lucide-react";
+import { MoreHorizontal, PowerOff } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,22 +12,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TransformedAsset } from "../types/asset-types";
-import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { DeleteAssetDialog } from "./delete-asset-dialog";
 import { DecommissionAssetDialog } from "./decommission-asset-dialog";
 import { AssetDetailDrawer } from "./asset-detail-drawer";
 
 export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [assetToDelete, setAssetToDelete] = useState<TransformedAsset | null>(null);
   const [decommissionDialogOpen, setDecommissionDialogOpen] = useState(false);
   const [assetToDecommission, setAssetToDecommission] = useState<TransformedAsset | null>(null);
-
-  const handleDeleteClick = (asset: TransformedAsset) => {
-    setAssetToDelete(asset);
-    setDeleteDialogOpen(true);
-  };
 
   const handleDecommissionClick = (asset: TransformedAsset) => {
     setAssetToDecommission(asset);
@@ -47,25 +37,13 @@ export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
       formatter: (value, row) => (
         <AssetDetailDrawer asset={row}>
           <Button variant="link" className="h-auto p-0 text-left font-mono">
-            {value || row.assetTag || "View Asset"}
+            {value || row.assetTag || row.assetNumber || "View Asset"}
           </Button>
         </AssetDetailDrawer>
       ),
     },
     { key: "materialDescription", label: "Material Description" },
     { key: "description", label: "Description" },
-    { key: "sysStatus", label: "SysStatus" },
-    { key: "userStatusRaw", label: "UserStatus" },
-    {
-      key: "acquistnValue",
-      label: "AcquistnValue",
-      formatter: (value) =>
-        typeof value === "number" ? (
-          <div className="text-sm font-medium">${value.toLocaleString()}</div>
-        ) : (
-          <span className="text-sm text-muted-foreground">—</span>
-        ),
-    },
     { key: "comment", label: "Comment" },
   ];
 
@@ -95,22 +73,6 @@ export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
   return [
     ...dataColumns,
     {
-      id: "origin",
-      header: "Origin",
-      cell: ({ row }) => {
-        const origin = row.original.origin || "inventory";
-        const isDiscovered = origin === "discovered";
-        return (
-          <Badge
-            variant="outline"
-            className={isDiscovered ? "border-blue-400 text-blue-600 dark:text-blue-300" : ""}
-          >
-            {isDiscovered ? "Discovered" : "Catalogued"}
-          </Badge>
-        );
-      },
-    },
-    {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => {
@@ -128,50 +90,20 @@ export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={`/dashboard/assets/${asset.id}`}
-                    className="cursor-pointer"
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    View Details
-                  </Link>
-                </DropdownMenuItem>
-                {!isDiscovered ? (
+                {!isDiscovered && asset.status !== "Decommissioned" && (
                   <>
-                    {asset.status !== "Decommissioned" && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="cursor-pointer text-red-600"
-                          onClick={() => handleDecommissionClick(asset)}
-                        >
-                          <PowerOff className="mr-2 h-4 w-4" />
-                          Decommission
-                        </DropdownMenuItem>
-                      </>
-                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      className="text-red-600 cursor-pointer"
-                      onClick={() => handleDeleteClick(asset)}
+                      className="cursor-pointer text-red-600"
+                      onClick={() => handleDecommissionClick(asset)}
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Asset
+                      <PowerOff className="mr-2 h-4 w-4" />
+                      Decommission
                     </DropdownMenuItem>
                   </>
-                ) : null}
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
-            <DeleteAssetDialog
-              open={deleteDialogOpen}
-              onOpenChange={setDeleteDialogOpen}
-              asset={assetToDelete}
-              onSuccess={() => {
-                setAssetToDelete(null);
-              }}
-            />
             <DecommissionAssetDialog
               open={decommissionDialogOpen}
               onOpenChange={setDecommissionDialogOpen}
