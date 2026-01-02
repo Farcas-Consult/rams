@@ -324,16 +324,16 @@ export function transformStatisticsFromDotNet(
     assetStats: {
       totalAssets: stats.totalAssets,
       activeAssets: stats.activeAssets,
-      maintenanceAssets: 0, // Not available in .NET API
-      categoriesCount: 0, // Not available in .NET API
-      locationsCount: 0, // Not available in .NET API
+      maintenanceAssets: 0,
+      categoriesCount: 0,
+      locationsCount: 0,
       undiscoveredAssets: stats.assetsNotSeen30Days,
     },
     decommissionStats: {
       totalDecommissioned: stats.decommissionedAssets,
-      readyForRecommission: 0, // Not available in .NET API
-      pendingDisposal: 0, // Not available in .NET API
-      averageDowntimeDays: 0, // Not available in .NET API
+      readyForRecommission: 0,
+      pendingDisposal: 0,
+      averageDowntimeDays: 0,
     },
   };
 }
