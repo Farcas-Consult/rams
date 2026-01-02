@@ -30,7 +30,7 @@ export async function GET() {
       fromDate: fromDate.toISOString(),
       toDate: toDate.toISOString(),
       pageNumber: 1,
-      pageSize: 100, // Get recent movements
+      pageSize: 500, // Get more recent movements to match SignalR cache size
     });
 
     // Transform to live feed format

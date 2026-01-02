@@ -1,7 +1,7 @@
  "use client";
 
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useSignalRLiveFeed } from "@/lib/signalr-hook";
 
 type LiveFeedRow = {
   assetId: string | null;
@@ -41,6 +42,8 @@ type LiveFeedRow = {
 type TimeWindow = "all" | "5m" | "15m" | "60m";
 
 function useLiveFeed() {
+  const queryClient = useQueryClient();
+  
   return useQuery<LiveFeedRow[]>({
     queryKey: ["live-feed"],
     queryFn: async () => {
@@ -48,9 +51,55 @@ function useLiveFeed() {
       if (!res.ok) {
         throw new Error("Failed to fetch live feed");
       }
-      return res.json();
+      const newData = await res.json();
+      
+      // Merge with existing cache to preserve SignalR updates
+      const oldData = queryClient.getQueryData<LiveFeedRow[]>(["live-feed"]);
+      if (!oldData) return newData;
+      
+      // Create a map keyed by asset identifier + timestamp
+      const dataMap = new Map<string, LiveFeedRow>();
+      
+      // First add all new API data
+      newData.forEach((row: LiveFeedRow) => {
+        const key = `${row.assetId ?? row.lastSeenEpc ?? row.equipment ?? 'unknown'}-${row.lastSeenAt}`;
+        dataMap.set(key, row);
+      });
+      
+      // Then merge in old data (from SignalR) if it's newer or missing
+      oldData.forEach((oldRow: LiveFeedRow) => {
+        const oldKey = `${oldRow.assetId ?? oldRow.lastSeenEpc ?? oldRow.equipment ?? 'unknown'}-${oldRow.lastSeenAt}`;
+        const existing = dataMap.get(oldKey);
+        
+        if (!existing) {
+          // Not in new data, check if it's recent (within last hour) before adding
+          const oldTime = new Date(oldRow.lastSeenAt).getTime();
+          const oneHourAgo = Date.now() - 60 * 60 * 1000;
+          if (oldTime >= oneHourAgo) {
+            dataMap.set(oldKey, oldRow);
+          }
+        } else {
+          // Compare timestamps - keep the newer one
+          const oldTime = new Date(oldRow.lastSeenAt).getTime();
+          const newTime = new Date(existing.lastSeenAt).getTime();
+          if (oldTime > newTime) {
+            dataMap.set(oldKey, oldRow);
+          }
+        }
+      });
+      
+      // Convert back to array, sort by timestamp, and limit
+      const merged = Array.from(dataMap.values());
+      merged.sort((a, b) => {
+        const dateA = new Date(a.lastSeenAt).getTime();
+        const dateB = new Date(b.lastSeenAt).getTime();
+        return dateB - dateA;
+      });
+      
+      return merged.slice(0, 500);
     },
-    refetchInterval: 5000,
+    // Keep polling as fallback, but reduce frequency when SignalR is connected
+    refetchInterval: 30000, // Poll every 30 seconds as fallback
     refetchOnWindowFocus: false,
   });
 }
@@ -101,6 +150,7 @@ const statusColorMap: Record<string, string> = {
 
 export default function LiveFeedsPage() {
   const { data, isLoading, isError } = useLiveFeed();
+  const { isConnected, error: signalRError } = useSignalRLiveFeed();
 
   const [gate, setGate] = React.useState<string>("all");
   const [category, setCategory] = React.useState<string>("all");
@@ -150,9 +200,27 @@ export default function LiveFeedsPage() {
           <h1 className="text-xl font-semibold tracking-tight">
             Live Asset Feed
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Real-time RFID reads for tracked assets. Updating every 5 seconds.
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-muted-foreground">
+              Real-time RFID reads for tracked assets.
+            </p>
+            <Badge
+              variant={isConnected ? "default" : "secondary"}
+              className={cn(
+                "text-xs",
+                isConnected
+                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200"
+                  : "bg-slate-100 text-slate-800 dark:bg-slate-900/40 dark:text-slate-200"
+              )}
+            >
+              {isConnected ? "● Live" : "○ Polling"}
+            </Badge>
+            {signalRError && (
+              <span className="text-xs text-red-600 dark:text-red-400">
+                SignalR: {signalRError}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -274,7 +342,6 @@ export default function LiveFeedsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Asset name</TableHead>
-                    <TableHead>EPC</TableHead>
                     <TableHead>Last seen</TableHead>
                     <TableHead>Gate</TableHead>
                     <TableHead>Direction</TableHead>
@@ -286,12 +353,9 @@ export default function LiveFeedsPage() {
                 </TableHeader>
                 <TableBody>
                   {filteredRows.map((row) => (
-                    <TableRow key={`${row.assetId ?? row.lastSeenEpc}-${row.lastSeenAt}`}>
+                    <TableRow key={`${row.assetId ?? row.lastSeenEpc ?? row.equipment}-${row.lastSeenAt}`}>
                       <TableCell className="max-w-[180px] truncate">
                         {row.assetName ?? row.equipment ?? (row.assetId ? "-" : "Unknown Asset")}
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {row.lastSeenEpc ?? "—"}
                       </TableCell>
                       <TableCell>
                         <span className="text-xs text-muted-foreground">
