@@ -58,7 +58,6 @@ const primaryColumnLabels = [
   "Description",
   "Loc. in UMOJA",
   "Description (RAMS)",
-  "Mission",
   "System status",
 ] as const;
 
@@ -117,7 +116,6 @@ export function ReportClient({ columns, rows }: ReportClientProps) {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [filters, setFilters] = React.useState({
     direction: "all",
-    mission: "all",
     systemStatus: "all",
     userStatus: "all",
     accessGroup: "all",
@@ -147,7 +145,6 @@ export function ReportClient({ columns, rows }: ReportClientProps) {
       getUniqueValues(rows, columnMap[key]);
     return {
       direction: pick("direction"),
-      mission: pick("mission"),
       systemStatus: pick("systemStatus"),
       userStatus: pick("userStatus"),
       accessGroup: pick("accessGroup"),
@@ -180,7 +177,6 @@ export function ReportClient({ columns, rows }: ReportClientProps) {
       return (
         matchesSearch &&
         matchSelect("direction", columnMap.direction) &&
-        matchSelect("mission", columnMap.mission) &&
         matchSelect("systemStatus", columnMap.systemStatus) &&
         matchSelect("userStatus", columnMap.userStatus) &&
         matchSelect("accessGroup", columnMap.accessGroup) &&
@@ -211,7 +207,6 @@ export function ReportClient({ columns, rows }: ReportClientProps) {
   const resetFilters = () => {
     setFilters({
       direction: "all",
-      mission: "all",
       systemStatus: "all",
       userStatus: "all",
       accessGroup: "all",
@@ -238,7 +233,6 @@ export function ReportClient({ columns, rows }: ReportClientProps) {
         rows={filteredRows}
         metricKeys={{
           systemStatus: columnMap.systemStatus,
-          mission: columnMap.mission,
           direction: columnMap.direction,
         }}
       />
@@ -276,7 +270,6 @@ export function ReportClient({ columns, rows }: ReportClientProps) {
                 {(
                   [
                     { key: "direction", label: "Direction", placeholder: "All Direction" },
-                    { key: "mission", label: "Mission", placeholder: "All Missions" },
                     { key: "systemStatus", label: "System status", placeholder: "All System status" },
                     { key: "userStatus", label: "User status", placeholder: "All User status" },
                     { key: "accessGroup", label: "Access Group", placeholder: "All Access Groups" },

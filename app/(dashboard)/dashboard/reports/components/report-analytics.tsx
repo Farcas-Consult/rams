@@ -6,10 +6,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  Pie,
-  PieChart,
   ResponsiveContainer,
-  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
@@ -24,7 +21,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Separator } from "@/components/ui/separator";
 
 import { AssetReportRow } from "../lib/get-asset-report";
 
@@ -32,19 +28,11 @@ type ReportAnalyticsProps = {
   rows: AssetReportRow[];
   metricKeys: {
     systemStatus?: string;
-    mission?: string;
     direction?: string;
   };
 };
 
 const palette = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
-
-const parseNumber = (value?: string) => {
-  if (!value) return 0;
-  const cleaned = value.replace(/[^0-9.-]+/g, "");
-  const parsed = Number(cleaned);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
 
 export function ReportAnalytics({ rows, metricKeys }: ReportAnalyticsProps) {
 
@@ -57,16 +45,6 @@ export function ReportAnalytics({ rows, metricKeys }: ReportAnalyticsProps) {
     }, {});
     return Object.entries(counts).map(([status, total]) => ({ status, total }));
   }, [rows, metricKeys.systemStatus]);
-
-  const missionData = useMemo(() => {
-    if (!metricKeys.mission) return [];
-    const counts = rows.reduce<Record<string, number>>((acc, row) => {
-      const key = row[metricKeys.mission!]?.trim() || "Unspecified";
-      acc[key] = (acc[key] ?? 0) + 1;
-      return acc;
-    }, {});
-    return Object.entries(counts).map(([mission, total]) => ({ mission, total }));
-  }, [rows, metricKeys.mission]);
 
   const directionData = useMemo(() => {
     if (!metricKeys.direction) return [];
@@ -90,8 +68,6 @@ export function ReportAnalytics({ rows, metricKeys }: ReportAnalyticsProps) {
     }, {});
   }, [systemStatusData]);
 
-  const categoryColors = palette;
-
   const summary = useMemo(() => {
     const totalAssets = rows.length;
     const dominantDirection = directionData[0];
@@ -103,19 +79,13 @@ export function ReportAnalytics({ rows, metricKeys }: ReportAnalyticsProps) {
         tag: "Inventory",
       },
       {
-        label: "Unique Missions",
-        value: missionData.length.toString(),
-        subtext: "Mission codes represented",
-        tag: "Missions",
-      },
-      {
         label: "Direction Focus",
         value: dominantDirection ? dominantDirection.direction : "Unspecified",
         subtext: dominantDirection ? `${dominantDirection.total} records` : "No direction data",
         tag: "Direction",
       },
     ];
-  }, [rows.length, missionData.length, directionData]);
+  }, [rows.length, directionData]);
 
   return (
     <div className="space-y-4">
@@ -140,7 +110,7 @@ export function ReportAnalytics({ rows, metricKeys }: ReportAnalyticsProps) {
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-1">
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle>System Status Breakdown</CardTitle>
@@ -168,51 +138,6 @@ export function ReportAnalytics({ rows, metricKeys }: ReportAnalyticsProps) {
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle>Mission Mix</CardTitle>
-            <CardDescription>Top missions represented in this export snapshot.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1">
-            <ResponsiveContainer width="100%" height={320}>
-              <PieChart>
-                <Pie
-                  data={missionData}
-                  dataKey="total"
-                  nameKey="mission"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={70}
-                  outerRadius={110}
-                  paddingAngle={3}
-                >
-                  {missionData.map((entry, index) => (
-                    <Cell key={entry.mission} fill={categoryColors[index % categoryColors.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value) => [`${value} assets`, "Count"]}
-                  contentStyle={{ borderRadius: 8 }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <Separator className="my-4" />
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              {missionData.map((entry, index) => (
-                <div key={entry.mission} className="flex items-center gap-2">
-                  <span
-                    className="inline-block size-2 rounded-full"
-                    style={{ background: categoryColors[index % categoryColors.length] }}
-                  />
-                  <span className="text-muted-foreground">
-                    {entry.mission}: <span className="text-foreground font-medium">{entry.total}</span>
-                  </span>
-                </div>
-              ))}
-            </div>
           </CardContent>
         </Card>
       </div>
