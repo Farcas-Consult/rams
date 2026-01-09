@@ -4,19 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Spinner } from "@/components/ui/spinner";
 import { TransformedAsset } from "../types/asset-types";
-import { useRecommissionAsset } from "../hooks/useAssetMutations";
-import { RefreshCcw } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from "@/components/ui/dialog";
 
 export const useDecommissionedAssetColumns = (): ColumnDef<TransformedAsset>[] => {
   return [
@@ -75,84 +63,6 @@ export const useDecommissionedAssetColumns = (): ColumnDef<TransformedAsset>[] =
         );
       },
     },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }) => {
-        const asset = row.original;
-        return (
-          <RecommissionAction asset={asset} />
-        );
-      },
-    },
+    // Actions column disabled while decommissioning workflow is turned off
   ];
 };
-
-function RecommissionAction({ asset }: { asset: TransformedAsset }) {
-  const { mutateAsync: recommissionAsset, isPending } = useRecommissionAsset();
-  const [open, setOpen] = useState(false);
-
-  const handleConfirm = async () => {
-    try {
-      await recommissionAsset(asset.id);
-      setOpen(false);
-    } catch (error) {
-      console.error("Recommission error:", error);
-    }
-  };
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (isPending) return;
-    setOpen(nextOpen);
-  };
-
-  return (
-    <>
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={isPending}
-        onClick={() => setOpen(true)}
-      >
-        <RefreshCcw className="mr-2 h-4 w-4" />
-        Recommission
-      </Button>
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Recommission asset?</DialogTitle>
-            <DialogDescription className="space-y-1 text-sm">
-              <p>
-                This will return <strong>{asset.assetName}</strong> ({asset.assetTag || asset.equipment})
-                to the active inventory list.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                The asset will be available for use again.
-              </p>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="sm:justify-between">
-            <DialogClose asChild disabled={isPending}>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button
-              onClick={handleConfirm}
-              disabled={isPending}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              {isPending ? (
-                <span className="flex items-center gap-2">
-                  <Spinner className="h-3.5 w-3.5" />
-                  Processing...
-                </span>
-              ) : (
-                "Confirm"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
-
