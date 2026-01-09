@@ -5,6 +5,7 @@ import {
   getAssets,
   getAssetStats,
   getDecommissionStats,
+  getTaggingStats,
 } from "../services/asset-service";
 import { AssetQuery } from "../schemas/asset-schemas";
 
@@ -37,3 +38,12 @@ export const useDecommissionedAssets = (query: AssetQuery) => {
     status: "Decommissioned",
   });
 };
+
+export const useTaggingStats = () => {
+  return useQuery({
+    queryKey: ["tagging-stats"],
+    queryFn: getTaggingStats,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+

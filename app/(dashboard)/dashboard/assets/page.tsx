@@ -5,6 +5,7 @@ import { GenericTable } from "@/components/tables/generic-table";
 import { useAssetColumns } from "./components/asset-table-columns";
 import { useAssets } from "./hooks/useAssets";
 import { AssetKPICards } from "./components/asset-kpi-cards";
+import { TaggingKPICards } from "./components/tagging-kpi-cards";
 import { ImportAssetsDialog } from "./components/import-assets-dialog";
 import { AssetQuery } from "./schemas/asset-schemas";
 import { TransformedAsset } from "./types/asset-types";
@@ -71,6 +72,9 @@ export default function AssetsPage() {
 
       {/* KPI Cards */}
       <AssetKPICards />
+
+      {/* Tagging Coverage Report */}
+      <TaggingKPICards />
 
       {/* Import Dialog */}
       <ImportAssetsDialog

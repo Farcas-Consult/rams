@@ -4,6 +4,7 @@ import { AssetDashboardKPIs } from "./components/asset-dashboard-kpis";
 import { AssetRadialUptime } from "./components/asset-radial-uptime";
 import { AssetTypePie } from "./components/asset-type-pie";
 import { AssetLocationBars } from "./components/asset-location-bars";
+import { TaggingKPICards } from "./assets/components/tagging-kpi-cards";
 
 export default async function Page() {
   const dashboardData = await getDashboardData();
@@ -11,6 +12,8 @@ export default async function Page() {
   return (
     <div className="space-y-6">
       <AssetDashboardKPIs data={dashboardData.kpis} />
+
+      <TaggingKPICards />
 
       <div className="grid gap-4 px-4 lg:px-6 lg:grid-cols-2 xl:grid-cols-3">
         <AssetRadialUptime data={dashboardData.uptime} />

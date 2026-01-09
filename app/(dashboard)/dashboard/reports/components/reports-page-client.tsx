@@ -3,6 +3,7 @@
 import { useAssetReports } from "../hooks/use-asset-reports";
 import { ReportClient } from "./report-client";
 import { IconLoader2 } from "@tabler/icons-react";
+import { TaggingKPICards } from "../../assets/components/tagging-kpi-cards";
 
 export function ReportsPageClient() {
   const { data: dataset, isLoading, error } = useAssetReports();
@@ -37,6 +38,11 @@ export function ReportsPageClient() {
     );
   }
 
-  return <ReportClient columns={dataset.columns} rows={dataset.rows} />;
+  return (
+    <div className="space-y-6">
+      <TaggingKPICards />
+      <ReportClient columns={dataset.columns} rows={dataset.rows} />
+    </div>
+  );
 }
 

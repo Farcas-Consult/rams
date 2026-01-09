@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp, Building2, AlertTriangle, RefreshCw } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 
 import {
   Card,
@@ -28,24 +28,6 @@ const kpiCards: KPIConfig[] = [
     icon: TrendingUp,
     getValue: (data) => data.totalAssets,
   },
-  {
-    label: "Assets In Service",
-    detail: "currently online",
-    icon: Building2,
-    getValue: (data) => data.assetsInService,
-  },
-  {
-    label: "In Maintenance",
-    detail: "scheduled work",
-    icon: RefreshCw,
-    getValue: (data) => data.maintenanceAssets,
-  },
-  {
-    label: "Decommissioned",
-    detail: "awaiting action",
-    icon: AlertTriangle,
-    getValue: (data) => data.decommissionedAssets,
-  },
 ];
 
 type AssetDashboardKPIsProps = {
@@ -54,7 +36,7 @@ type AssetDashboardKPIsProps = {
 
 export function AssetDashboardKPIs({ data }: AssetDashboardKPIsProps) {
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-bl *:data-[slot=card]:shadow-xs lg:px-6 md:grid-cols-2 xl:grid-cols-4">
+    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-bl *:data-[slot=card]:shadow-xs lg:px-6">
       {kpiCards.map((kpi) => {
         const value = kpi.getValue(data);
         return (

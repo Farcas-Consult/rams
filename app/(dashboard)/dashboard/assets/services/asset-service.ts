@@ -133,3 +133,16 @@ export const getDecommissionStats = async () => {
   return data.decommissionStats;
 };
 
+export const getTaggingStats = async () => {
+  const response = await fetch(`${API_BASE_URL}/tagging-stats`, {
+    cache: "no-store",
+  });
+  return handleResponse<{
+    tagged: number;
+    untagged: number;
+    total: number;
+    taggedPct: number;
+    untaggedPct: number;
+  }>(response);
+};
+
