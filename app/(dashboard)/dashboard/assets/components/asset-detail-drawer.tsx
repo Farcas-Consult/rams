@@ -70,9 +70,10 @@ const detailFields: { label: string; key: keyof TransformedAsset }[] = [
   { label: "Purchase Price", key: "purchasePrice" },
   { label: "Purchase Date", key: "purchaseDate" },
   { label: "Comment", key: "comment" },
-  { label: "Is Decommissioned", key: "isDecommissioned" },
-  { label: "Decommissioned At", key: "decommissionedAt" },
-  { label: "Decommission Reason", key: "decommissionReason" },
+  // Decommission metadata hidden while decommissioning is disabled
+  // { label: "Is Decommissioned", key: "isDecommissioned" },
+  // { label: "Decommissioned At", key: "decommissionedAt" },
+  // { label: "Decommission Reason", key: "decommissionReason" },
   { label: "Created At", key: "createdAt" },
   { label: "Updated At", key: "updatedAt" },
 ];
@@ -80,10 +81,6 @@ const detailFields: { label: string; key: keyof TransformedAsset }[] = [
 const formatValue = (key: keyof TransformedAsset, value: any) => {
   if (value === null || value === undefined || value === "") {
     return "—";
-  }
-
-  if (key === "isDecommissioned") {
-    return value ? "Yes" : "No";
   }
 
   if (key === "acquistnValue" || key === "purchasePrice") {
@@ -96,8 +93,7 @@ const formatValue = (key: keyof TransformedAsset, value: any) => {
     key === "purchaseDate" ||
     key === "createdAt" ||
     key === "updatedAt" ||
-    key === "discoveredAt" ||
-    key === "decommissionedAt"
+    key === "discoveredAt"
   ) {
     const date = typeof value === "string" ? new Date(value) : value;
     if (Number.isNaN(date?.getTime())) return value;

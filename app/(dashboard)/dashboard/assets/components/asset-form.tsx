@@ -108,6 +108,7 @@ export function AssetForm({ mode, initialData, epc }: AssetFormProps) {
         : "catalogued",
       discoveryNotes: initialData?.discoveryNotes ?? "",
       discoveredAt: formatDateInput(initialData?.discoveredAt),
+      // Decommissioning defaults kept for compatibility but not exposed in the form
       isDecommissioned: initialData?.isDecommissioned ?? false,
       decommissionedAt: formatDateInput(initialData?.decommissionedAt),
       decommissionReason: initialData?.decommissionReason ?? "",
@@ -160,6 +161,7 @@ export function AssetForm({ mode, initialData, epc }: AssetFormProps) {
       discoveryStatus: values.discoveryStatus,
       discoveryNotes: trimString(values.discoveryNotes),
       discoveredAt: values.discoveredAt || undefined,
+      // Preserve any incoming decommission metadata but do not allow editing while disabled
       isDecommissioned: values.isDecommissioned ?? false,
       decommissionedAt: values.decommissionedAt || undefined,
       decommissionReason: trimString(values.decommissionReason),
@@ -759,9 +761,9 @@ export function AssetForm({ mode, initialData, epc }: AssetFormProps) {
 
         <section className="space-y-4 rounded-xl border border-border/60 bg-card/40 p-4">
           <div>
-            <h3 className="text-base font-semibold">Discovery & Lifecycle</h3>
+            <h3 className="text-base font-semibold">Discovery</h3>
             <p className="text-sm text-muted-foreground">
-              Discovery notes plus decommissioning metadata for lifecycle tracking.
+              Discovery notes for lifecycle tracking. Decommissioning fields are currently disabled.
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
@@ -791,63 +793,6 @@ export function AssetForm({ mode, initialData, epc }: AssetFormProps) {
                   <FormControl>
                     <Textarea
                       placeholder="Notes from discovery or field teams"
-                      className="min-h-[90px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="isDecommissioned"
-              render={({ field }) => (
-                <FormItem className="col-span-full">
-                  <div className="flex items-start gap-3 rounded-lg border border-dashed border-border/60 p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(!!checked)}
-                      />
-                    </FormControl>
-                    <div className="space-y-1">
-                      <FormLabel>Mark as Decommissioned</FormLabel>
-                      <p className="text-sm text-muted-foreground">
-                        When checked we track the decommission date and reason for this asset.
-                      </p>
-                    </div>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="decommissionedAt"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Decommissioned At</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      value={field.value ?? ""}
-                      onChange={(event) => field.onChange(event.currentTarget.value)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="decommissionReason"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>Decommission Reason</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Reason or notes about the decommission decision"
                       className="min-h-[90px]"
                       {...field}
                     />

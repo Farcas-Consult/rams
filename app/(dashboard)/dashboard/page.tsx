@@ -1,8 +1,6 @@
 import { getDashboardData } from "@/lib/dashboard-data";
 
 import { AssetDashboardKPIs } from "./components/asset-dashboard-kpis";
-import { AssetRadialUptime } from "./components/asset-radial-uptime";
-import { AssetTypePie } from "./components/asset-type-pie";
 import { AssetLocationBars } from "./components/asset-location-bars";
 import { TaggingKPICards } from "./assets/components/tagging-kpi-cards";
 
@@ -15,12 +13,8 @@ export default async function Page() {
 
       <TaggingKPICards />
 
-      <div className="grid gap-4 px-4 lg:px-6 lg:grid-cols-2 xl:grid-cols-3">
-        <AssetRadialUptime data={dashboardData.uptime} />
-        <AssetTypePie data={dashboardData.typeDistribution} />
-        <div className="lg:col-span-2 xl:col-span-1">
-          <AssetLocationBars data={dashboardData.locationDistribution} />
-        </div>
+      <div className="px-4 lg:px-6">
+        <AssetLocationBars data={dashboardData.locationDistribution} />
       </div>
     </div>
   );

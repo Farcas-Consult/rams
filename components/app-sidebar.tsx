@@ -47,12 +47,6 @@ const navItems: NavItem[] = [
     requiredPermission: "live-feed:read",
   },
   {
-    title: "Decommissioning",
-    url: "/dashboard/decommissioning",
-    icon: IconArchive,
-    requiredPermission: "decommissioning:read",
-  },
-  {
     title: "Report",
     url: "/dashboard/reports",
     icon: IconReport,

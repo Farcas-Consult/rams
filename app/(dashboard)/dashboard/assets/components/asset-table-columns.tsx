@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, PowerOff } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,18 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { TransformedAsset } from "../types/asset-types";
 import { useState, type ReactNode } from "react";
-import { DecommissionAssetDialog } from "./decommission-asset-dialog";
 import { AssetDetailDrawer } from "./asset-detail-drawer";
 
 export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
-  const [decommissionDialogOpen, setDecommissionDialogOpen] = useState(false);
-  const [assetToDecommission, setAssetToDecommission] = useState<TransformedAsset | null>(null);
-
-  const handleDecommissionClick = (asset: TransformedAsset) => {
-    setAssetToDecommission(asset);
-    setDecommissionDialogOpen(true);
-  };
-
   const summaryColumns: {
     key: keyof TransformedAsset;
     label: string;
@@ -77,40 +68,20 @@ export const useAssetColumns = (): ColumnDef<TransformedAsset>[] => {
       header: "Actions",
       cell: ({ row }) => {
         const asset = row.original;
-        const isDiscovered = asset.origin === "discovered";
 
         return (
-          <>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                {!isDiscovered && asset.status !== "Decommissioned" && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="cursor-pointer text-red-600"
-                      onClick={() => handleDecommissionClick(asset)}
-                    >
-                      <PowerOff className="mr-2 h-4 w-4" />
-                      Decommission
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <DecommissionAssetDialog
-              open={decommissionDialogOpen}
-              onOpenChange={setDecommissionDialogOpen}
-              asset={assetToDecommission}
-              onSuccess={() => setAssetToDecommission(null)}
-            />
-          </>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              {/* Decommission action temporarily disabled */}
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       },
     },

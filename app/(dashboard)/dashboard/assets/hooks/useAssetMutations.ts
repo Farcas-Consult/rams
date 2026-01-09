@@ -7,8 +7,8 @@ import {
   updateAsset,
   deleteAsset,
   importAssets,
-  decommissionAsset,
-  recommissionAsset,
+  // decommissionAsset,
+  // recommissionAsset,
 } from "../services/asset-service";
 import { CreateAssetInput, UpdateAssetInput, ImportAssetsInput } from "../schemas/asset-schemas";
 
@@ -81,37 +81,7 @@ export const useImportAssets = () => {
   });
 };
 
-export const useDecommissionAsset = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => decommissionAsset(id),
-    onSuccess: (_, id) => {
-      toast.success("Asset moved to decommissioning");
-      queryClient.invalidateQueries({ queryKey: ["assets"] });
-      queryClient.invalidateQueries({ queryKey: ["asset-stats"] });
-      queryClient.invalidateQueries({ queryKey: ["decommission-stats"] });
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to decommission asset: ${error.message}`);
-    },
-  });
-};
-
-export const useRecommissionAsset = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => recommissionAsset(id),
-    onSuccess: () => {
-      toast.success("Asset recommissioned successfully");
-      queryClient.invalidateQueries({ queryKey: ["assets"] });
-      queryClient.invalidateQueries({ queryKey: ["asset-stats"] });
-      queryClient.invalidateQueries({ queryKey: ["decommission-stats"] });
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to recommission asset: ${error.message}`);
-    },
-  });
-};
+// Decommission and recommission flows are temporarily disabled.
+// export const useDecommissionAsset = () => { ... }
+// export const useRecommissionAsset = () => { ... }
 
